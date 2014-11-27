@@ -1,8 +1,8 @@
-namespace gleanio.framework.Enumerations
+namespace Gleanio.Framework.Enumerations
 {
     #region Enumerations
 
-    public enum Capitalisation
+    public enum StringCapitalisation
     {
         DefaultDoNothing = 0,
         ToUpperCase = 1,

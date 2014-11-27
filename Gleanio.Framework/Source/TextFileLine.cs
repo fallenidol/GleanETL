@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace gleanio.framework.Source
+﻿namespace Gleanio.Framework.Source
 {
+    using System;
+
     public class TextFileLine
     {
         #region Fields

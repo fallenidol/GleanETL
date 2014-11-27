@@ -1,4 +1,4 @@
-﻿namespace gleanio.framework
+﻿namespace Gleanio.Framework
 {
     internal class Constants
     {

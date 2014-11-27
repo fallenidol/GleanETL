@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-
-namespace gleanio.framework.Source
+namespace Gleanio.Framework.Source
 {
+    using System.Collections.Generic;
+
     public class TextFileRecord
     {
         #region Fields

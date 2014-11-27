@@ -1,8 +1,9 @@
-﻿using System;
-using gleanio.framework.EventArgs;
-
-namespace gleanio.framework.Columns
+﻿namespace Gleanio.Framework.Columns
 {
+    using System;
+
+    using Gleanio.Framework.EventArgs;
+
     public abstract class BaseColumn
     {
         #region Constructors

@@ -1,9 +1,10 @@
-using System;
-using System.Globalization;
-using gleanio.framework.Enumerations;
-
-namespace gleanio.framework.Columns
+namespace Gleanio.Framework.Columns
 {
+    using System;
+    using System.Globalization;
+
+    using Gleanio.Framework.Enumerations;
+
     public class DateColumn : BaseColumn<DateTime?>
     {
         #region Fields

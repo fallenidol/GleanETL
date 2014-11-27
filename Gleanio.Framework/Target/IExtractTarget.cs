@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace gleanio.framework.Target
+﻿namespace Gleanio.Framework.Target
 {
+    using System.Collections.Generic;
+
     public interface IExtractTarget
     {
         #region Properties

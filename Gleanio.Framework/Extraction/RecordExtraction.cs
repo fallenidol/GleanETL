@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using gleanio.framework.Columns;
-using gleanio.framework.Source;
-using gleanio.framework.Target;
-
-namespace gleanio.framework.Extraction
+﻿namespace Gleanio.Framework.Extraction
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+
+    using Gleanio.Framework.Columns;
+    using Gleanio.Framework.Source;
+    using Gleanio.Framework.Target;
+
     public class RecordExtraction : Extract
     {
         #region Fields
@@ -49,6 +50,32 @@ namespace gleanio.framework.Extraction
         #endregion Properties
 
         #region Methods
+
+        public static Func<TextFileRecord, IEnumerable<TextFileLine>> CharacterDelimitedSingleLineRecordParser(char inputDelimiter)
+        {
+            return record =>
+            {
+                List<TextFileLine> returnLines = null;
+
+                if (record.FileLines.Count() == 1)
+                {
+                    var line = record.FileLines.FirstOrDefault();
+
+                    if (line != null)
+                    {
+                        var values = line.OriginalLine.Split(inputDelimiter);
+                        returnLines = new List<TextFileLine>();
+                        returnLines.Add(new TextFileLine(record.RecordNumber, String.Join("~", values), "~"));
+                    }
+                }
+                else
+                {
+                    throw new InvalidProgramException("There can be only 1!!!");
+                }
+
+                return returnLines;
+            };
+        }
 
         public override void ExtractToTarget()
         {
@@ -130,6 +157,8 @@ namespace gleanio.framework.Extraction
             }
 
             _target.SaveRows(targetFileLines.ToArray());
+
+            OnExtractComplete();
 
             Debug.WriteLine("*** " + _source.Name.ToUpperInvariant() + " FINISHED. " + recordNumber + " RECORDS SAVED!!");
         }

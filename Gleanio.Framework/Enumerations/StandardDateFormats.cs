@@ -1,4 +1,4 @@
-namespace gleanio.framework.Enumerations
+namespace Gleanio.Framework.Enumerations
 {
     #region Enumerations
 

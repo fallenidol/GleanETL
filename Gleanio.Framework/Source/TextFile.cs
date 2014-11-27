@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using gleanio.framework.Columns;
-
-namespace gleanio.framework.Source
+﻿namespace Gleanio.Framework.Source
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using Gleanio.Framework.Columns;
+
     public class TextFile
     {
         #region Fields
@@ -12,7 +13,6 @@ namespace gleanio.framework.Source
         private readonly System.IO.FileInfo _fileInfo;
 
         private IEnumerable<TextFileLine> _allLines;
-        private Func<TextFileLine, bool> _keepLineFunc = line => true;
 
         #endregion Fields
 
@@ -20,6 +20,8 @@ namespace gleanio.framework.Source
 
         public TextFile(string pathToFile)
         {
+            TakeLineFunc = line => true;
+
             if (System.IO.File.Exists(pathToFile))
             {
                 _fileInfo = new System.IO.FileInfo(pathToFile);
@@ -67,9 +69,16 @@ namespace gleanio.framework.Source
         {
             get
             {
-                return from l in _allLines
-                       where _keepLineFunc(l)
-                       select l;
+                if (_allLines == null)
+                {
+                    _allLines = System.IO.File.ReadLines(_fileInfo.FullName).Select((l, idx) => new TextFileLine(idx + 1, l));
+
+                    //Debug.WriteLine("{0}: Line Count: Total={1}, To Keep={2}", Name, LineCount, LinesToImport.Count());
+                }
+
+                return (from l in _allLines
+                    where TakeLineFunc(l)
+                    select l).AsParallel();
             }
         }
 
@@ -83,19 +92,11 @@ namespace gleanio.framework.Source
             get { return _fileInfo.Name.Replace(_fileInfo.Extension, string.Empty); }
         }
 
-        #endregion Properties
-
-        #region Methods
-
-        public void Parse(Func<TextFileLine, bool> keepLineFunc)
+        public Func<TextFileLine, bool> TakeLineFunc
         {
-            _keepLineFunc = keepLineFunc;
-
-            _allLines = System.IO.File.ReadLines(_fileInfo.FullName).Select((l, idx) => new TextFileLine(idx + 1, l));
-
-            //Debug.WriteLine("{0}: Line Count: Total={1}, To Keep={2}", Name, LineCount, LinesToImport.Count());
+            get; set;
         }
 
-        #endregion Methods
+        #endregion Properties
     }
 }

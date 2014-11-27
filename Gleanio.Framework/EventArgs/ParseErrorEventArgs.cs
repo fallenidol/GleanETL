@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace gleanio.framework.EventArgs
+﻿namespace Gleanio.Framework.EventArgs
 {
+    using System;
+
     public class ParseErrorEventArgs : System.EventArgs
     {
         #region Constructors

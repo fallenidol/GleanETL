@@ -1,4 +1,4 @@
-﻿namespace gleanio.framework.Extraction
+﻿namespace Gleanio.Framework.Extraction
 {
     public interface IExtract
     {

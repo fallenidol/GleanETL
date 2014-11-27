@@ -1,27 +1,28 @@
-using System;
-using System.Text;
-using gleanio.framework.Enumerations;
-
-namespace gleanio.framework.Columns
+namespace Gleanio.Framework.Columns
 {
+    using System;
+    using System.Text;
+
+    using Gleanio.Framework.Enumerations;
+
     public class StringColumn : BaseColumn<string>
     {
         #region Fields
 
-        private readonly Capitalisation _capitalisation = Capitalisation.DefaultDoNothing;
         private readonly bool _encloseInDoubleQuotes;
         private readonly int _maxLength;
+        private readonly StringCapitalisation _stringCapitalisation = StringCapitalisation.DefaultDoNothing;
         private readonly WhitespaceHandling _whitespaceHandling = WhitespaceHandling.DefaultDoNothing;
 
         #endregion Fields
 
         #region Constructors
 
-        public StringColumn(string columnName, int maxLength, bool encloseInDoubleQuotes = false, WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace, Capitalisation capitalisation = Capitalisation.DefaultDoNothing)
+        public StringColumn(string columnName, int maxLength, bool encloseInDoubleQuotes = false, WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace, StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
             : base(columnName)
         {
             _whitespaceHandling = whitespaceHandling;
-            _capitalisation = capitalisation;
+            _stringCapitalisation = stringCapitalisation;
             _maxLength = maxLength;
             _encloseInDoubleQuotes = encloseInDoubleQuotes;
         }
@@ -30,14 +31,14 @@ namespace gleanio.framework.Columns
 
         #region Properties
 
-        public Capitalisation Capitalisation
-        {
-            get { return _capitalisation; }
-        }
-
         public int MaxLength
         {
             get { return _maxLength; }
+        }
+
+        public StringCapitalisation StringCapitalisation
+        {
+            get { return _stringCapitalisation; }
         }
 
         public WhitespaceHandling WhitespaceHandling
@@ -55,20 +56,20 @@ namespace gleanio.framework.Columns
 
             if (value != null)
             {
-                if (Capitalisation == Capitalisation.ToCamelCase && WhitespaceHandling == WhitespaceHandling.RemoveAllWhitespace)
+                if (StringCapitalisation == StringCapitalisation.ToCamelCase && WhitespaceHandling == WhitespaceHandling.RemoveAllWhitespace)
                 {
                     throw new InvalidOperationException("ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
                 }
 
-                switch (Capitalisation)
+                switch (StringCapitalisation)
                 {
-                    case Capitalisation.ToLowerCase:
+                    case StringCapitalisation.ToLowerCase:
                         returnValue = returnValue.ToLowerInvariant();
                         break;
-                    case Capitalisation.ToUpperCase:
+                    case StringCapitalisation.ToUpperCase:
                         returnValue = returnValue.ToUpperInvariant();
                         break;
-                    case Capitalisation.ToCamelCase:
+                    case StringCapitalisation.ToCamelCase:
                         returnValue = ToPascalCase(returnValue);
                         break;
                 }

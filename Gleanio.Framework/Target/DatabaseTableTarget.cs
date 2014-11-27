@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using gleanio.framework.Columns;
-
-namespace gleanio.framework.Target
+﻿namespace Gleanio.Framework.Target
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Linq;
+
+    using Gleanio.Framework.Columns;
+
     public class DatabaseTableTarget : BaseExtractTarget
     {
         #region Fields
@@ -80,8 +81,8 @@ namespace gleanio.framework.Target
                         {
                             ordinal++;
 
-                            var dc = Helper.GetDataColumn(col);
-                            data.Columns.Add(dc);
+                            var dc = GetDataColumn(col);
+                            data.Columns.Add((DataColumn) dc);
 
                             dc.SetOrdinal(ordinal);
 
@@ -131,6 +132,50 @@ namespace gleanio.framework.Target
                     }
                 }
             }
+        }
+
+        private DataColumn GetDataColumn(BaseColumn col)
+        {
+            var dc = new DataColumn(col.ColumnName);
+            dc.Caption = col.ColumnName;
+            dc.AllowDBNull = true;
+            dc.ReadOnly = true;
+
+            Type colType = col.GetType();
+
+            if (colType == typeof(StringColumn))
+            {
+                dc.DataType = typeof(string);
+
+                var c = col as StringColumn;
+                dc.MaxLength = c.MaxLength;
+            }
+            if (colType == typeof(StringNoWhitespaceColumn))
+            {
+                dc.DataType = typeof(string);
+
+                var c = col as StringColumn;
+                dc.MaxLength = c.MaxLength;
+            }
+            if (colType == typeof(IntColumn))
+            {
+                dc.DataType = typeof(int);
+            }
+            if (colType == typeof(DecimalColumn))
+            {
+                dc.DataType = typeof(decimal);
+            }
+            if (colType == typeof(MoneyColumn))
+            {
+                dc.DataType = typeof(decimal);
+            }
+            if (colType == typeof(DateColumn))
+            {
+                dc.DataType = typeof(DateTime);
+                dc.DateTimeMode = DataSetDateTime.Local;
+            }
+
+            return dc;
         }
 
         #endregion Methods

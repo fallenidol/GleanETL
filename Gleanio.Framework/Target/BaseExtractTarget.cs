@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace gleanio.framework.Target
+namespace Gleanio.Framework.Target
 {
+    using System.Collections.Generic;
+
     public abstract class BaseExtractTarget : IExtractTarget
     {
         #region Constructors

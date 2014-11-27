@@ -1,7 +1,7 @@
-using System.Globalization;
-
-namespace gleanio.framework.Columns
+namespace Gleanio.Framework.Columns
 {
+    using System.Globalization;
+
     public class IntColumn : BaseColumn<int?>
     {
         #region Constructors

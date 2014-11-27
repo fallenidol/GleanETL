@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-
-namespace gleanio.framework.Target
+﻿namespace Gleanio.Framework.Target
 {
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+
     public class SeparatedValueFileTarget : BaseExtractTarget
     {
         #region Fields

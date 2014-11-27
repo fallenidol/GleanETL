@@ -1,10 +1,10 @@
-﻿using System;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-
-namespace gleanio.framework
+﻿namespace Gleanio.Framework
 {
+    using System;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Linq;
+
     internal class SqlTableCreator
     {
         #region Fields

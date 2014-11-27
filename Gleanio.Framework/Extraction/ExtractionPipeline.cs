@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace gleanio.framework.Extraction
+﻿namespace Gleanio.Framework.Extraction
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class ExtractionPipeline
     {
         #region Fields
