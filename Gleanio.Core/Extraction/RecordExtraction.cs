@@ -1,31 +1,58 @@
-﻿using Gleanio.Core.Source;
-
-namespace Gleanio.Core.Extraction
+﻿namespace Gleanio.Core.Extraction
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-
     using Gleanio.Core.Columns;
     using Gleanio.Core.Source;
     using Gleanio.Core.Target;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
-    public class RecordExtraction<TExtractTarget> : Extract<TExtractTarget> where TExtractTarget : BaseExtractTarget
+    public class ExtractRecordsToDatabase : RecordExtraction<DatabaseTableTarget>
     {
-        #region Fields
-
-        private readonly List<TextFileLine> _newLines = new List<TextFileLine>();
-
-        #endregion Fields
-
         #region Constructors
 
-        public RecordExtraction(BaseColumn[] columns, TextFile source, TExtractTarget target)
+        public ExtractRecordsToDatabase(BaseColumn[] columns, TextFile source, DatabaseTableTarget target)
+            : base(columns, source, target)
+        {
+        }
+
+        #endregion Constructors
+    }
+
+    public class ExtractRecordsToSeparatedValueFile : RecordExtraction<SeparatedValueFileTarget>
+    {
+        #region Constructors
+
+        public ExtractRecordsToSeparatedValueFile(BaseColumn[] columns, TextFile source, SeparatedValueFileTarget target)
+            : base(columns, source, target)
+        {
+        }
+
+        #endregion Constructors
+    }
+
+    public class ExtractRecordsToTrace : RecordExtraction<TraceOutputTarget>
+    {
+        #region Constructors
+
+        public ExtractRecordsToTrace(BaseColumn[] columns, TextFile source, TraceOutputTarget target)
+            : base(columns, source, target)
+        {
+        }
+
+        #endregion Constructors
+    }
+
+    public class RecordExtraction<TExtractTarget> : Extract<TExtractTarget>
+        where TExtractTarget : BaseExtractTarget
+    {
+        #region Constructors
+
+        protected RecordExtraction(BaseColumn[] columns, TextFile source, TExtractTarget target)
             : base(columns, source, target)
         {
             IsFirstLineOfRecord = (line, prevLine) => true;
-            ParseRecord = record => record.FileLines.Any() ? new[] { new TextFileLine(record.RecordNumber, record.FileLines.FirstOrDefault().OriginalLine) } : null;
+            ParseRecord = record => record.FileLines.Any() ? new[] { new TextFileLine(record.FileLines.FirstOrDefault().OriginalLine) } : null;
         }
 
         #endregion Constructors
@@ -48,23 +75,31 @@ namespace Gleanio.Core.Extraction
 
         #region Methods
 
-        
-
-        public override void ExtractToTarget()
+        public override void AfterExtract()
         {
-            var records = new List<TextFileRecord>();
-            int recordNumber = 0;
+            throw new NotImplementedException();
+        }
+
+        public override void BeforeExtract()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<TextFileRecord> EnumerateRecords()
+        {
             TextFileRecord currentTextFileRecord = null;
             TextFileLine previousLine = null;
 
-            foreach (var line in Source.LinesToImport)
+            foreach (var line in Source.EnumerateFileLines())
             {
                 if (IsFirstLineOfRecord(line, previousLine))
                 {
-                    recordNumber++;
+                    if (currentTextFileRecord != null)
+                    {
+                        yield return currentTextFileRecord;
+                    }
 
-                    currentTextFileRecord = new TextFileRecord(recordNumber);
-                    records.Add(currentTextFileRecord);
+                    currentTextFileRecord = new TextFileRecord();
                 }
 
                 if (currentTextFileRecord != null)
@@ -74,8 +109,10 @@ namespace Gleanio.Core.Extraction
 
                 previousLine = line;
             }
+        }
 
-            _newLines.Clear();
+        public IEnumerable<TextFileLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
+        {
             foreach (var record in records)
             {
                 if (record.FileLines.Any())
@@ -83,13 +120,23 @@ namespace Gleanio.Core.Extraction
                     var recordLines = ParseRecord(record);
                     if (recordLines != null)
                     {
-                        _newLines.AddRange(recordLines);
+                        foreach (var line in recordLines)
+                        {
+                            yield return line;
+                        }
                     }
                 }
             }
+        }
+
+        public override void ExtractToTarget()
+        {
+            var records = EnumerateRecords();
+
+            var lines = FlattenRecordsIntoLines(records);
 
             var targetFileLines = new List<object[]>();
-            foreach (var line in _newLines)
+            foreach (var line in lines)
             {
                 string[] rawLineValues = line.OriginalLine.Split(new[] { line.Delimiter }, StringSplitOptions.None);
                 var parsedLineValues = ParseStringValues(rawLineValues);
@@ -100,9 +147,9 @@ namespace Gleanio.Core.Extraction
                 }
             }
 
-            Target.SaveRows(targetFileLines.ToArray());
+            Target.CommitData(targetFileLines);
 
-            Debug.WriteLine("*** " + Source.Name.ToUpperInvariant() + " FINISHED. " + recordNumber + " RECORDS SAVED!!");
+            //Debug.WriteLine("*** " + Source.FilenameWithExtension.ToUpperInvariant() + " FINISHED. " + recordNumber + " RECORDS SAVED!!");
         }
 
         #endregion Methods

@@ -7,7 +7,7 @@ namespace Gleanio.Core.Enumerations
         DefaultDoNothing = 0,
         TrimLeadingAndTrailingWhitespace = 1,
         RemoveAllWhitespace = 2,
-        RemoveAllButOneSpace = 3
+        TrimAndRemoveConsecutiveWhitespace = 3
     }
 
     #endregion Enumerations

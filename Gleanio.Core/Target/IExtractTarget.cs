@@ -1,8 +1,7 @@
-﻿using Gleanio.Core.Columns;
-
-namespace Gleanio.Core.Target
+﻿namespace Gleanio.Core.Target
 {
     using System.Collections.Generic;
+
 
     public interface IExtractTarget
     {
@@ -13,14 +12,18 @@ namespace Gleanio.Core.Target
             get;
         }
 
-        //BaseColumn[] Columns { get; set; }
-
         #endregion Properties
 
         #region Methods
 
-        void SaveRows(ICollection<ICollection<object>> rowData);
+        void CommitData(IEnumerable<object[]> dataRows);
 
         #endregion Methods
+
+        #region Other
+
+        //BaseColumn[] Columns { get; set; }
+
+        #endregion Other
     }
 }

@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-
-namespace Gleanio.Core.Target
+﻿namespace Gleanio.Core.Target
 {
-    public class TraceOutputTarget: BaseExtractTarget
-    {
+    using System.Collections.Generic;
+    using System.Diagnostics;
 
-        public override void SaveRows(ICollection<ICollection<object>> rowData)
+    public class TraceOutputTarget : BaseExtractTarget
+    {
+        #region Methods
+
+        public override void CommitData(IEnumerable<object[]> dataRows)
         {
-            rowData.ForEach(objects => Trace.WriteLine(string.Join("=>", objects)));
+            dataRows.ForEach((i, o) => Trace.WriteLine(string.Format("Row {0}: {1}", i, string.Join(", ", o))));
         }
 
+        #endregion Methods
     }
 }

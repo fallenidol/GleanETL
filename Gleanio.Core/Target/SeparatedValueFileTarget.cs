@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Text;
 
     public class SeparatedValueFileTarget : BaseExtractTarget
@@ -43,7 +42,7 @@
 
         #region Methods
 
-        public override void SaveRows(ICollection<ICollection<object>> rowData)
+        public override void CommitData(IEnumerable<object[]> dataRows)
         {
             if (_firstSave && DeleteIfExists && System.IO.File.Exists(TargetFilePath))
             {
@@ -54,9 +53,9 @@
             long rowCount = 0;
             var rows = new StringBuilder();
 
-            foreach (var row in rowData)
+            foreach (var row in dataRows)
             {
-                string line = string.Join(ColumnDelimiter, row.ToArray());
+                string line = string.Join(ColumnDelimiter, row);
 
                 rows.AppendLine(line);
                 rowCount++;

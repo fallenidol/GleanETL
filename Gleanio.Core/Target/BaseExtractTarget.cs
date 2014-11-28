@@ -1,7 +1,6 @@
-using Gleanio.Core.Columns;
-
 namespace Gleanio.Core.Target
 {
+    using Gleanio.Core.Columns;
     using System.Collections.Generic;
 
     public abstract class BaseExtractTarget : IExtractTarget
@@ -32,7 +31,7 @@ namespace Gleanio.Core.Target
 
         #region Methods
 
-        public abstract void SaveRows(ICollection<ICollection<object>> rowData);
+        public abstract void CommitData(IEnumerable<object[]> dataRows);
 
         #endregion Methods
     }

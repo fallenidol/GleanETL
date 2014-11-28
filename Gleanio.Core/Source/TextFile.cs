@@ -2,17 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
-    using Gleanio.Core.Columns;
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class TextFile
     {
         #region Fields
 
-        private readonly System.IO.FileInfo _fileInfo;
+        private readonly object _enumeratorLock = new object();
+        private readonly string _filenameExtension;
+        private readonly string _filenameWithExtension;
+        private readonly string _filenameWithoutExtension;
+        private readonly string _pathToFile;
 
-        private IEnumerable<TextFileLine> _allLines;
+        private bool _alreadyEnumerated;
 
         #endregion Fields
 
@@ -22,76 +26,71 @@
         {
             TakeLineFunc = line => true;
 
-            if (System.IO.File.Exists(pathToFile))
-            {
-                _fileInfo = new System.IO.FileInfo(pathToFile);
-            }
+            _pathToFile = pathToFile.Trim();
+
+            int lastBackslashIndex = pathToFile.LastIndexOf('\\') + 1;
+            string filenameWithExtenstion = pathToFile.Substring(lastBackslashIndex).Trim();
+
+            int lastPeriodIndex = filenameWithExtenstion.LastIndexOf('.');
+            string filenameWithoutExtenstion = lastPeriodIndex < 0 ? filenameWithExtenstion.Substring(0).Trim() : filenameWithExtenstion.Substring(0, lastPeriodIndex).Trim();
+            string extension = lastPeriodIndex < 0 ? string.Empty : filenameWithExtenstion.Substring(lastPeriodIndex).Trim();
+
+            _filenameWithoutExtension = filenameWithoutExtenstion;
+            _filenameWithExtension = filenameWithExtenstion;
+            _filenameExtension = extension;
         }
 
         #endregion Constructors
 
         #region Properties
 
-        public long ByteCount
+        public string FilenameExtension
         {
-            get { return _fileInfo.Length; }
+            get { return _filenameExtension; }
         }
 
-        public string Extension
+        public string FilenameWithExtension
         {
-            get { return _fileInfo.Extension; }
+            get { return _filenameWithExtension; }
         }
 
-        public string FullName
+        public string FilenameWithoutExtension
         {
-            get { return _fileInfo.FullName; }
+            get { return _filenameWithoutExtension; }
         }
 
-        public DateTime LastWriteTimeUtc
+        public Func<string, bool> TakeLineFunc
         {
-            get { return _fileInfo.LastWriteTimeUtc; }
-        }
-
-        public long LineCount
-        {
-            get
-            {
-                return _allLines.Count();
-            }
-        }
-
-        public IEnumerable<TextFileLine> LinesToImport
-        {
-            get
-            {
-                if (_allLines == null)
-                {
-                    _allLines = System.IO.File.ReadLines(_fileInfo.FullName).Select((l, idx) => new TextFileLine(idx + 1, l));
-
-                    //Debug.WriteLine("{0}: Line Count: Total={1}, To Keep={2}", Name, LineCount, LinesToImport.Count());
-                }
-
-                return (from l in _allLines
-                    where TakeLineFunc(l)
-                    select l).AsParallel();
-            }
-        }
-
-        public string Name
-        {
-            get { return _fileInfo.Name; }
-        }
-
-        public string NameWithoutExtension
-        {
-            get { return _fileInfo.Name.Replace(_fileInfo.Extension, string.Empty); }
-        }
-
-        public Func<TextFileLine, bool> TakeLineFunc
-        {
-            get; set;
+            get;
+            set;
         }
 
         #endregion Properties
+
+        #region Methods
+
+        public IEnumerable<TextFileLine> EnumerateFileLines()
+        {
+            if (_alreadyEnumerated) throw new InvalidProgramException("Already enumerated!!!");
+
+            lock (_enumeratorLock)
+            {
+                _alreadyEnumerated = true;
+
+                int lineNumber = 1;
+
+                foreach (var line in System.IO.File.ReadLines(_pathToFile))
+                {
+                    if (TakeLineFunc.Invoke(line))
+                    {
+                        yield return new TextFileLine(line);
+
+                        lineNumber++;
+                    }
+                }
+            }
+        }
+
+        #endregion Methods
     }
 }

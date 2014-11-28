@@ -12,9 +12,8 @@ namespace Gleanio.Core.Source
 
         #region Constructors
 
-        public TextFileRecord(int recordNumber)
+        public TextFileRecord()
         {
-            RecordNumber = recordNumber;
             _fileLines = new List<TextFileLine>();
         }
 
@@ -25,11 +24,6 @@ namespace Gleanio.Core.Source
         public IEnumerable<TextFileLine> FileLines
         {
             get { return _fileLines; }
-        }
-
-        public long RecordNumber
-        {
-            get; private set;
         }
 
         #endregion Properties

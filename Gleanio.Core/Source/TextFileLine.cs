@@ -7,7 +7,6 @@
         #region Fields
 
         private readonly string _delimiter;
-        private readonly long _lineNumber;
         private readonly string _originalLine;
 
         private string _lowerCaseLine;
@@ -18,15 +17,9 @@
 
         #region Constructors
 
-        public TextFileLine(long lineNumber, string originalLineText, string delimiter = null)
-            : this(lineNumber, originalLineText)
+        public TextFileLine(string originalLineText, string delimiter = null)
         {
             _delimiter = delimiter;
-        }
-
-        public TextFileLine(long lineNumber, string originalLineText)
-        {
-            _lineNumber = lineNumber;
             _originalLine = originalLineText;
         }
 
@@ -42,11 +35,6 @@
         public int LineLength
         {
             get { return _originalLine.Length; }
-        }
-
-        public long LineNumber
-        {
-            get { return _lineNumber; }
         }
 
         public string LowerCaseLine

@@ -1,12 +1,11 @@
 ﻿namespace Gleanio.Core.Target
 {
+    using Gleanio.Core.Columns;
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
-
-    using Gleanio.Core.Columns;
 
     public class DatabaseTableTarget : BaseExtractTarget
     {
@@ -38,9 +37,10 @@
 
         #region Methods
 
-        public override void SaveRows(ICollection<ICollection<object>> rowData)
+        public override void CommitData(IEnumerable<object[]> dataRows)
         {
-            int totalRows = rowData.Count;
+            // TODO USE TAKE/ WHILE
+            int totalRows = 0;//rowData.Count();
             const int batchSize = 10000;
             int processed = 0;
 
@@ -63,7 +63,7 @@
                         data.Columns.Add(rowId);
                         rowId.SetOrdinal(ordinal);
 
-                        data.PrimaryKey = new [] { rowId };
+                        data.PrimaryKey = new[] { rowId };
 
                         foreach (BaseColumn col in _columns)
                         {
@@ -76,7 +76,7 @@
 
                         }
 
-                        var batchRows = rowData.Skip(processed).Take(batchSize);
+                        var batchRows = dataRows.Skip(processed).Take(batchSize);
 
                         data.BeginLoadData();
 

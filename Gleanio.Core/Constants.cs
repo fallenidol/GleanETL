@@ -4,6 +4,7 @@
     {
         #region Fields
 
+        public static string DoubleSpace = "  ";
         public static string SingleSpace = " ";
 
         #endregion Fields

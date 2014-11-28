@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using Gleanio.Core.Columns;
-using Gleanio.Core.Source;
-
-namespace Gleanio.Core
+﻿namespace Gleanio.Core
 {
+    using Gleanio.Core.Columns;
+    using Gleanio.Core.Source;
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+
     public class HelperFunctions
     {
+        #region Methods
+
         public static Func<TextFileRecord, IEnumerable<TextFileLine>> CharacterDelimitedSingleLineRecordParser(char inputDelimiter)
         {
             return record =>
@@ -24,7 +25,7 @@ namespace Gleanio.Core
                     {
                         var values = line.OriginalLine.Split(inputDelimiter);
                         returnLines = new List<TextFileLine>();
-                        returnLines.Add(new TextFileLine(record.RecordNumber, String.Join("~", values), "~"));
+                        returnLines.Add(new TextFileLine(String.Join("~", values), "~"));
                     }
                 }
                 else
@@ -36,22 +37,22 @@ namespace Gleanio.Core
             };
         }
 
-        public static Func<TextFileLine, bool> LineDoesNotStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
+        public static Func<string, bool> LineDoesNotStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {
-            return line => line.LineLength >= numberOfCharsToTest && !line.OriginalLine.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
+            return line => line.Length >= numberOfCharsToTest && !line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
         }
 
-        public static Func<TextFileLine, bool> LineStartsWithDate(int numberOfCharsToTest, string[] formats)
+        public static Func<string, bool> LineStartsWithDate(int numberOfCharsToTest, string[] formats)
         {
             return line =>
             {
                 bool validLine = false;
 
-                if (line.LineLength >= numberOfCharsToTest)
+                if (line.Length >= numberOfCharsToTest)
                 {
 
                     var dc = new DateColumn(string.Empty, formats);
-                    string test = line.OriginalLine.Substring(0, numberOfCharsToTest);
+                    string test = line.Substring(0, numberOfCharsToTest);
                     validLine = dc.ParseValue(test).HasValue;
                 }
                 return validLine;
@@ -59,16 +60,18 @@ namespace Gleanio.Core
             };
         }
 
-        public static Func<TextFileLine, bool> LineStartsWithInteger(int numberOfCharsToTest)
+        public static Func<string, bool> LineStartsWithInteger(int numberOfCharsToTest)
         {
             int xx;
 
-            return line => line.LineLength >= numberOfCharsToTest && int.TryParse(line.OriginalLine.Substring(0, numberOfCharsToTest).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out xx);
+            return line => line.Length >= numberOfCharsToTest && int.TryParse(line.Substring(0, numberOfCharsToTest).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out xx);
         }
 
-        public static Func<TextFileLine, bool> LineStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
+        public static Func<string, bool> LineStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {
-            return line => line.LineLength >= numberOfCharsToTest && line.OriginalLine.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
+            return line => line.Length >= numberOfCharsToTest && line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
         }
+
+        #endregion Methods
     }
 }

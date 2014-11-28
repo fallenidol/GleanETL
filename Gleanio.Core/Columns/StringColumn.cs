@@ -1,7 +1,6 @@
-using Gleanio.Core.Enumerations;
-
 namespace Gleanio.Core.Columns
 {
+    using Gleanio.Core.Enumerations;
     using System;
     using System.Text;
 
@@ -18,7 +17,7 @@ namespace Gleanio.Core.Columns
 
         #region Constructors
 
-        public StringColumn(string columnName, int maxLength, bool encloseInDoubleQuotes = false, WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace, StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
+        public StringColumn(string columnName, int maxLength = -1, bool encloseInDoubleQuotes = false, WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace, StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
             : base(columnName)
         {
             _whitespaceHandling = whitespaceHandling;
@@ -80,22 +79,20 @@ namespace Gleanio.Core.Columns
                         returnValue = returnValue.Trim();
                         break;
                     case WhitespaceHandling.RemoveAllWhitespace:
-                        while (returnValue.Contains(Constants.SingleSpace))
-                        {
-                            returnValue = returnValue.Replace(Constants.SingleSpace, string.Empty);
-                        }
+                        returnValue = returnValue.RemoveAllWhitespace();
                         break;
-                    case WhitespaceHandling.RemoveAllButOneSpace:
-                        while (returnValue.Contains("  "))
-                        {
-                            returnValue = returnValue.Replace("  ", Constants.SingleSpace);
-                        }
+                    case WhitespaceHandling.TrimAndRemoveConsecutiveWhitespace:
+                        returnValue = returnValue.TrimAndRemoveConsecutiveWhitespace();
                         break;
                 }
 
                 if (MaxLength > 0)
                 {
                     returnValue = returnValue.Substring(0, Math.Min(MaxLength, returnValue.Length));
+                }
+                else if (MaxLength == 0)
+                {
+                    returnValue = string.Empty;
                 }
 
                 if (_encloseInDoubleQuotes)
