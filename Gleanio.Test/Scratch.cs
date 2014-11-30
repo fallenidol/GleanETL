@@ -1,4 +1,7 @@
-﻿namespace Gleanio.Test
+﻿using System.IO;
+using System.Text;
+
+namespace Gleanio.Test
 {
     using Gleanio.Core;
     using Gleanio.Core.Columns;
@@ -13,6 +16,48 @@
     public class Scratch
     {
         #region Methods
+
+        [TestMethod]
+        public void GenerateBigFile()
+        {
+            string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Gleanio\");
+            string tf = Path.Combine(up, @"rnd_big_file.txt");
+
+            if (!File.Exists(tf))
+            {
+                Directory.CreateDirectory(up);
+                using (File.Create(tf)) {}
+
+                StringBuilder sb = new StringBuilder();
+                int bufferedLines = 0;
+
+                for (int i = 0; i < 3000000; i++)
+                {
+                    var rnd = new Random(i);
+
+                    int day = rnd.Next(1, 27);
+                    int month = rnd.Next(1, 12);
+                    int year = rnd.Next(1950, 2014);
+
+                    int hr = rnd.Next(0, 23);
+                    int mm = rnd.Next(0, 59);
+                    int ss = rnd.Next(0, 59);
+
+                    var dt = new DateTime(year, month, day, hr, mm, ss);
+
+                    sb.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}", dt.ToString("dd/MM/yyyy"), dt.ToString("HH:mm:ss"), new Random(i).Next(1000, 9999), Guid.NewGuid()));
+                    bufferedLines++;
+
+                    if (bufferedLines == 50000)
+                    {
+                        File.AppendAllText(tf, sb.ToString());
+                        sb.Clear();
+                        bufferedLines = 0;
+                    }
+                }
+            }
+        }
+
 
         [TestMethod]
         public void ExtractHostsFileToTraceOutput()
@@ -39,38 +84,44 @@
                 SplitLineFunc = line => line.OriginalLine.TrimAndRemoveConsecutiveWhitespace().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries).ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
             };
 
-            //extraction.ProgressChanged += (sender, args) => Trace.WriteLine("Percent Complete " + args.ProgressPercentage + "%");
-
             extraction.ExtractToTarget();
         }
 
-        [TestMethod]
-        public void GLTrans()
-        {
-            var columns = new BaseColumn[]
-            {
-                new StringColumn("ACCOUNT", 4)
-            };
+        //[TestMethod]
+        //public void GLTrans()
+        //{
+        //    var columns = new BaseColumn[]
+        //    {
+        //        //new StringColumn("ACCOUNT", 4)
+        //                        new StringColumn("IP"),
+        //        new StringColumn("HOST")
+        //    };
 
-            var source = new TextFile(@"C:\Users\paul.mcilreavy\Dropbox\Development\Code\Gleanio\Gleanio.Test\Files\GLTRANS.txt")
-            {
-                TakeLineFunc = line => line.IsNumber(0, 4)
-            };
+        //    //var source = new TextFile(@"C:\Users\paul.mcilreavy\Dropbox\Development\Code\Gleanio\Gleanio.Test\Files\GLTRANS.txt")
+        //    var source = new TextFile(@"C:\Windows\System32\drivers\etc\HOSTS")
 
-            var target = new TraceOutputTarget();
+        //   {
+        //       //TakeLineFunc = line => line.IsNumber(0, 4)
+        //       TakeLineFunc = line =>
+        //           line.Length > 0 &&
+        //           (!line.Contains("#") || line.IndexOf('#') > 0)
+        //   };
 
-            var extraction = new ExtractLinesToTrace(columns, source, target)
-            {
-                SplitLineFunc = line => new[] { line.OriginalLine.Substring(0, 4) }
-            };
+        //    var target = new SeparatedValueFileTarget(@"C:\Users\Paul\Desktop\HOSTS.txt");
 
-            var sw = Stopwatch.StartNew();
+        //    var extraction = new ExtractLinesToSeparatedValueFile(columns, source, target)
+        //    {
+        //        // SplitLineFunc = line => new[] { line.OriginalLine.Substring(0, 4) }
+        //        SplitLineFunc = line => line.OriginalLine.TrimAndRemoveConsecutiveWhitespace().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries).ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
+        //    };
 
-            extraction.ExtractToTarget();
+        //    var sw = Stopwatch.StartNew();
 
-            sw.Stop();
-            Trace.WriteLine(sw.ElapsedMilliseconds + "ms");
-        }
+        //    extraction.ExtractToTarget();
+
+        //    sw.Stop();
+        //    Trace.WriteLine(sw.ElapsedMilliseconds + "ms");
+        //}
 
         #endregion Methods
     }
