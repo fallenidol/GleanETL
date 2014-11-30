@@ -1,11 +1,12 @@
 ﻿namespace Gleanio.Core
 {
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Source;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+
+    using Gleanio.Core.Columns;
+    using Gleanio.Core.Source;
 
     public class HelperFunctions
     {

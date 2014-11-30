@@ -1,8 +1,9 @@
 namespace Gleanio.Core.Columns
 {
-    using Gleanio.Core.Enumerations;
     using System;
     using System.Text;
+
+    using Gleanio.Core.Enumerations;
 
     public class StringColumn : BaseColumn<string>
     {

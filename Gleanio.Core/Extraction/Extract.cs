@@ -1,9 +1,10 @@
 ﻿namespace Gleanio.Core.Extraction
 {
+    using System;
+
     using Gleanio.Core.Columns;
     using Gleanio.Core.Source;
     using Gleanio.Core.Target;
-    using System;
 
     public abstract class Extract<TExtractTarget> : IExtract
         where TExtractTarget : BaseExtractTarget
@@ -20,12 +21,6 @@
         }
 
         #endregion Constructors
-
-        #region Events
-
-        //public event ProgressChangedEventHandler ProgressChanged;
-
-        #endregion Events
 
         #region Properties
 
@@ -116,6 +111,7 @@
 
         #region Other
 
+        //public event ProgressChangedEventHandler ProgressChanged;
         //public event EventHandler<ExtractCompleteEventArgs> ExtractComplete;
         //protected void OnExtractComplete()
         //{

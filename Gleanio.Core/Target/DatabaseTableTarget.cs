@@ -1,17 +1,17 @@
 ﻿namespace Gleanio.Core.Target
 {
-    using Gleanio.Core.Columns;
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
 
+    using Gleanio.Core.Columns;
+
     public class DatabaseTableTarget : BaseExtractTarget
     {
         #region Fields
 
-        private readonly BaseColumn[] _columns;
         private readonly string _connectionString;
         private readonly string _schema;
         private readonly string _table;
@@ -22,7 +22,8 @@
 
         #region Constructors
 
-        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo")
+        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo", bool deleteTargetIfExists = true)
+            : base(deleteTargetIfExists)
         {
             _table = targetTable.Trim();
             _schema = targetSchema.Trim();
@@ -39,85 +40,102 @@
 
         public override void CommitData(IEnumerable<object[]> dataRows)
         {
-            // TODO USE TAKE/ WHILE
-            int totalRows = 0;//rowData.Count();
             const int batchSize = 10000;
-            int processed = 0;
 
             using (var c = new SqlConnection(_connectionString))
             {
                 c.Open();
 
-                while (processed < totalRows)
+                if (DeleteIfExists && firstTime)
                 {
-                    using (var data = new DataTable(_table))
+                    using (var cmd = new SqlCommand(string.Format("IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' and TABLE_SCHEMA='{0}') TRUNCATE TABLE {0}.{1};", _schema, _table), c))
                     {
-                        int ordinal = 0;
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
-                        var rowId = new DataColumn("BULK_IMPORT_ID", typeof(long));
-                        rowId.Unique = true;
-                        rowId.AutoIncrementSeed = processed + 1;
-                        rowId.AutoIncrementStep = 1;
-                        rowId.AutoIncrement = true;
-                        rowId.AllowDBNull = false;
-                        data.Columns.Add(rowId);
-                        rowId.SetOrdinal(ordinal);
+                using (var data = new DataTable(_table))
+                {
+                    int ordinal = 0;
 
-                        data.PrimaryKey = new[] { rowId };
+                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof(long));
+                    rowId.Unique = true;
+                    rowId.AutoIncrementSeed = 1;
+                    rowId.AutoIncrementStep = 1;
+                    rowId.AutoIncrement = true;
+                    rowId.AllowDBNull = false;
+                    data.Columns.Add(rowId);
+                    rowId.SetOrdinal(ordinal);
 
-                        foreach (BaseColumn col in _columns)
+                    data.PrimaryKey = new[] { rowId };
+
+                    foreach (BaseColumn col in Columns)
+                    {
+                        ordinal++;
+
+                        var dc = GetDataColumn(col);
+                        data.Columns.Add(dc);
+
+                        dc.SetOrdinal(ordinal);
+                    }
+
+                    data.BeginLoadData();
+
+                    using (var iterator = dataRows.GetEnumerator())
+                    {
+                        if (iterator.MoveNext())
                         {
-                            ordinal++;
-
-                            var dc = GetDataColumn(col);
-                            data.Columns.Add(dc);
-
-                            dc.SetOrdinal(ordinal);
-
-                        }
-
-                        var batchRows = dataRows.Skip(processed).Take(batchSize);
-
-                        data.BeginLoadData();
-
-                        foreach (IEnumerable<object> row in batchRows)
-                        {
-                            var values = new List<object>();
-                            values.Add(null);
-                            values.AddRange(row.ToArray());
-
-                            data.Rows.Add(values.ToArray());
-                        }
-
-                        data.EndLoadData();
-
-                        if (firstTime)
-                        {
-                            string schemaSQL = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema + "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
-                            using (var cmd = new SqlCommand(schemaSQL, c))
+                            var row = iterator.Current;
+                            while (iterator.MoveNext())
                             {
-                                cmd.ExecuteNonQuery();
+                                row = iterator.Current;
+
+                                AddRow(row, data, batchSize, c, false);
                             }
 
-                            string createTableSQL = SqlTableCreator.GetCreateFromDataTableSQL(_table, data, _schema);
-                            string dropCreateSql = "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema + ".' AND TABLE_NAME = '" + _table + "_SUBITEM')) BEGIN DROP TABLE " + _schema + "." + _table + "_SUBITEM END; IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema + "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " + createTableSQL + "; ";
-                            using (var cmd = new SqlCommand(dropCreateSql, c))
-                            {
-                                cmd.ExecuteNonQuery();
-                            }
-
-                            firstTime = false;
-                        }
-
-                        using (var sbc = new SqlBulkCopy(c.ConnectionString, SqlBulkCopyOptions.TableLock))
-                        {
-                            sbc.DestinationTableName = _schema + "." + _table;
-                            sbc.WriteToServer(data);
-
-                            //Debug.WriteLine("SAVED " + data.Rows.Count + " ROWS TO " + _table);
-                            processed += data.Rows.Count;
+                            AddRow(row, data, batchSize, c, true);
                         }
                     }
+
+                    data.EndLoadData();
+                    data.Clear();
+                }
+            }
+        }
+
+        private void AddRow(object[] row, DataTable data, int batchSize, SqlConnection c, bool isLastRow)
+        {
+            var values = new List<object>(row.ToArray());
+            values.Insert(0, null);
+            if (data.Rows.Count <= batchSize)
+            {
+                data.Rows.Add(values.ToArray());
+            }
+
+            if (data.Rows.Count == batchSize || isLastRow)
+            {
+                if (firstTime)
+                {
+                    string schemaSQL = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema + "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
+                    using (var cmd = new SqlCommand(schemaSQL, c))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    string createTableSQL = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
+                    string dropCreateSql = "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema + "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " + createTableSQL + "; ";
+                    using (var cmd = new SqlCommand(dropCreateSql, c))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    firstTime = false;
+                }
+
+                using (var sbc = new SqlBulkCopy(c.ConnectionString, SqlBulkCopyOptions.TableLock))
+                {
+                    sbc.DestinationTableName = _schema + "." + _table;
+                    sbc.WriteToServer(data);
                 }
             }
         }

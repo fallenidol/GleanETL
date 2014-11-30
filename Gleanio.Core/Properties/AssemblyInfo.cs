@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Gleanio.Framework")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Gleanio")]
+[assembly: AssemblyDescription("Aims to provide a simple framework with which to extract data from text files, particularly if they are in non-standard formats.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Gleanio.Framework")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
+[assembly: AssemblyCompany("Paul Mcilreavy")]
+[assembly: AssemblyProduct("Gleanio")]
+[assembly: AssemblyCopyright("Copyright © 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

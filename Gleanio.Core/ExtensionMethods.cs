@@ -3,10 +3,17 @@
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
+    using System.Text;
 
     public static class ExtensionMethods
     {
         #region Methods
+
+        public static void AppendFormattedLine(this StringBuilder builder, string line, params object[] parameters)
+        {
+            builder.AppendLine(string.Format(line, parameters) + Environment.NewLine);
+        }
 
         public static bool ContainsCaseInsensitive(this string text, string search)
         {
@@ -74,6 +81,14 @@
             }
 
             return source;
+        }
+
+        public static bool IsLastElement<T>(this IEnumerable<T> items, T element)
+            where T : class
+        {
+            var last = items.LastOrDefault();
+
+            return last != null && last.Equals(element);
         }
 
         public static bool IsNullOrEmpty(this Array array)

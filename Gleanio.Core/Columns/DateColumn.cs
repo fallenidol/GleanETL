@@ -1,8 +1,9 @@
 namespace Gleanio.Core.Columns
 {
-    using Gleanio.Core.Enumerations;
     using System;
     using System.Globalization;
+
+    using Gleanio.Core.Enumerations;
 
     public class DateColumn : BaseColumn<DateTime?>
     {

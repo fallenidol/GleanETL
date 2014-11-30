@@ -1,7 +1,8 @@
 namespace Gleanio.Core.Target
 {
-    using Gleanio.Core.Columns;
     using System.Collections.Generic;
+
+    using Gleanio.Core.Columns;
 
     public abstract class BaseExtractTarget : IExtractTarget
     {

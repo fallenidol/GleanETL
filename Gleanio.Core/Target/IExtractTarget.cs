@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
 
-
     public interface IExtractTarget
     {
         #region Properties

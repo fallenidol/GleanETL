@@ -1,11 +1,12 @@
 ﻿namespace Gleanio.Core.Extraction
 {
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Source;
-    using Gleanio.Core.Target;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+
+    using Gleanio.Core.Columns;
+    using Gleanio.Core.Source;
+    using Gleanio.Core.Target;
 
     public class ExtractRecordsToDatabase : RecordExtraction<DatabaseTableTarget>
     {
@@ -111,24 +112,6 @@
             }
         }
 
-        public IEnumerable<TextFileLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
-        {
-            foreach (var record in records)
-            {
-                if (record.FileLines.Any())
-                {
-                    var recordLines = ParseRecord(record);
-                    if (recordLines != null)
-                    {
-                        foreach (var line in recordLines)
-                        {
-                            yield return line;
-                        }
-                    }
-                }
-            }
-        }
-
         public override void ExtractToTarget()
         {
             var records = EnumerateRecords();
@@ -150,6 +133,24 @@
             Target.CommitData(targetFileLines);
 
             //Debug.WriteLine("*** " + Source.FilenameWithExtension.ToUpperInvariant() + " FINISHED. " + recordNumber + " RECORDS SAVED!!");
+        }
+
+        public IEnumerable<TextFileLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
+        {
+            foreach (var record in records)
+            {
+                if (record.FileLines.Any())
+                {
+                    var recordLines = ParseRecord(record);
+                    if (recordLines != null)
+                    {
+                        foreach (var line in recordLines)
+                        {
+                            yield return line;
+                        }
+                    }
+                }
+            }
         }
 
         #endregion Methods

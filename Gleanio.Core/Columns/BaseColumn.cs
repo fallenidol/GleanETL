@@ -1,7 +1,8 @@
 ﻿namespace Gleanio.Core.Columns
 {
-    using Gleanio.Core.EventArgs;
     using System;
+
+    using Gleanio.Core.EventArgs;
 
     public abstract class BaseColumn
     {

@@ -4,6 +4,7 @@
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
+    using System.Text;
 
     internal class SqlTableCreator
     {
@@ -16,10 +17,6 @@
         #endregion Fields
 
         #region Constructors
-
-        public SqlTableCreator()
-        {
-        }
 
         public SqlTableCreator(SqlConnection connection)
             : this(connection, null)
@@ -58,41 +55,36 @@
 
         #region Methods
 
-        public static string GetCreateFromDataTableSQL(string tableName, DataTable table, string schema = "dbo")
+        public static string GetCreateFromDataTableSql(string tableName, DataTable table, string schema = "dbo")
         {
-            string sql = "CREATE TABLE [" + schema + "].[" + tableName + "] (\n";
-            // columns
+            var sql = new StringBuilder();
 
-            if (!table.Columns.Contains("BULK_IMPORT_ID"))
+            sql.AppendFormattedLine("CREATE TABLE [{0}].[{1}] (", schema, tableName);
+
+            foreach (DataColumn column in table.Columns)
             {
-                sql += "  [BULK_IMPORT_ID] [bigint] NOT NULL, ";
+                sql.AppendFormattedLine("\t[{0}] {1}, ", column.ColumnName, SQLGetType(column));
             }
+            sql = sql.Remove(sql.Length - 6, 6);
 
-            sql = table.Columns.Cast<DataColumn>().Aggregate(sql, (current, column) => current + ("[" + column.ColumnName + "] " + SQLGetType(column) + ",\n"));
-            sql = sql.TrimEnd(new char[] { ',', '\n' }) + "\n";
-
-            // primary keys
             if (table.PrimaryKey.Length > 0)
             {
-                sql += "CONSTRAINT [PK_" + tableName + "] PRIMARY KEY CLUSTERED (";
-                sql = table.PrimaryKey.Aggregate(sql, (current, column) => current + ("[" + column.ColumnName + "],"));
-                sql = sql.TrimEnd(new char[] { ',' }) + "))\n";
-            }
-            else if (!table.Columns.Contains("BULK_IMPORT_ID"))
-            {
-                sql += "CONSTRAINT [PK_" + tableName + "] PRIMARY KEY CLUSTERED ([BULK_IMPORT_ID])\n";
-            }
+                sql.AppendFormattedLine("\tCONSTRAINT [PK_{0}] PRIMARY KEY CLUSTERED (", tableName);
 
-            //if not ends with ")"
-            if ((table.PrimaryKey.Length == 0) && (!sql.EndsWith(")")))
-            {
-                sql += ")";
-            }
+                foreach (DataColumn column in table.PrimaryKey)
+                {
+                    sql.AppendFormattedLine("\t[{0}],", column.ColumnName);
+                }
 
-            return sql;
+                sql = sql.Remove(sql.Length -5, 5);
+                sql.AppendLine(")");
+            }
+            sql.AppendLine(")");
+
+            return sql.ToString();
         }
 
-        public static string GetCreateSQL(string tableName, DataTable schema, int[] primaryKeys)
+        public static string GetCreateSql(string tableName, DataTable schema, int[] primaryKeys)
         {
             string sql = "CREATE TABLE [" + tableName + "] (\n";
 
@@ -136,7 +128,7 @@
 
         public static string[] GetPrimaryKeys(DataTable schema)
         {
-            return (from DataRow column in schema.Rows where schema.Columns.Contains("IsKey") && (bool) column["IsKey"] select column["ColumnName"].ToString()).ToArray();
+            return (from DataRow column in schema.Rows where schema.Columns.Contains("IsKey") && (bool)column["IsKey"] select column["ColumnName"].ToString()).ToArray();
         }
 
         // Return T-SQL data type definition, based on schema definition for a column
@@ -214,7 +206,7 @@
 
         public object Create(DataTable schema, int[] primaryKeys)
         {
-            string sql = GetCreateSQL(_tableName, schema, primaryKeys);
+            string sql = GetCreateSql(_tableName, schema, primaryKeys);
 
             SqlCommand cmd;
             if (_transaction != null && _transaction.Connection != null)
@@ -227,7 +219,7 @@
 
         public object CreateFromDataTable(DataTable table)
         {
-            string sql = GetCreateFromDataTableSQL(_tableName, table);
+            string sql = GetCreateFromDataTableSql(_tableName, table);
 
             SqlCommand cmd;
             if (_transaction != null && _transaction.Connection != null)

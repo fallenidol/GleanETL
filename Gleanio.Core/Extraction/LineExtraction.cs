@@ -1,10 +1,11 @@
 ﻿namespace Gleanio.Core.Extraction
 {
+    using System;
+    using System.Collections.Generic;
+
     using Gleanio.Core.Columns;
     using Gleanio.Core.Source;
     using Gleanio.Core.Target;
-    using System;
-    using System.Collections.Generic;
 
     public class ExtractLinesToDatabase : LineExtraction<DatabaseTableTarget>
     {

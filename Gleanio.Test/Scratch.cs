@@ -1,16 +1,16 @@
-﻿using System.IO;
-using System.Text;
-
-namespace Gleanio.Test
+﻿namespace Gleanio.Test
 {
+    using System;
+    using System.IO;
+    using System.Text;
+
     using Gleanio.Core;
     using Gleanio.Core.Columns;
     using Gleanio.Core.Extraction;
     using Gleanio.Core.Source;
     using Gleanio.Core.Target;
+
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System;
-    using System.Diagnostics;
 
     [TestClass]
     public class Scratch
@@ -18,46 +18,32 @@ namespace Gleanio.Test
         #region Methods
 
         [TestMethod]
-        public void GenerateBigFile()
+        public void ExtractHostsFileToDatabase()
         {
-            string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Gleanio\");
-            string tf = Path.Combine(up, @"rnd_big_file.txt");
-
-            if (!File.Exists(tf))
+            var columns = new BaseColumn[]
             {
-                Directory.CreateDirectory(up);
-                using (File.Create(tf)) {}
+                new StringColumn("IP", 16),
+                new StringColumn("HOST", 250)
+            };
 
-                StringBuilder sb = new StringBuilder();
-                int bufferedLines = 0;
+            var source = new TextFile(@"C:\Windows\System32\drivers\etc\HOSTS")
+            {
+                TakeLineFunc = line =>
+                    line.Length > 0 &&
+                    !line.Contains("0.0.0.0") &&
+                    !line.ContainsCaseInsensitive("localhost") &&
+                    (!line.Contains("#") || line.IndexOf('#') > 0)
+            };
 
-                for (int i = 0; i < 3000000; i++)
-                {
-                    var rnd = new Random(i);
+            var target = new DatabaseTableTarget(@"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;", "Hosts", "dbo");
 
-                    int day = rnd.Next(1, 27);
-                    int month = rnd.Next(1, 12);
-                    int year = rnd.Next(1950, 2014);
+            var extraction = new ExtractLinesToDatabase(columns, source, target)
+            {
+                SplitLineFunc = line => line.OriginalLine.TrimAndRemoveConsecutiveWhitespace().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries).ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
+            };
 
-                    int hr = rnd.Next(0, 23);
-                    int mm = rnd.Next(0, 59);
-                    int ss = rnd.Next(0, 59);
-
-                    var dt = new DateTime(year, month, day, hr, mm, ss);
-
-                    sb.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}", dt.ToString("dd/MM/yyyy"), dt.ToString("HH:mm:ss"), new Random(i).Next(1000, 9999), Guid.NewGuid()));
-                    bufferedLines++;
-
-                    if (bufferedLines == 50000)
-                    {
-                        File.AppendAllText(tf, sb.ToString());
-                        sb.Clear();
-                        bufferedLines = 0;
-                    }
-                }
-            }
+            extraction.ExtractToTarget();
         }
-
 
         [TestMethod]
         public void ExtractHostsFileToTraceOutput()
@@ -87,41 +73,46 @@ namespace Gleanio.Test
             extraction.ExtractToTarget();
         }
 
-        //[TestMethod]
-        //public void GLTrans()
-        //{
-        //    var columns = new BaseColumn[]
-        //    {
-        //        //new StringColumn("ACCOUNT", 4)
-        //                        new StringColumn("IP"),
-        //        new StringColumn("HOST")
-        //    };
+        [TestMethod]
+        public void GenerateBigFile()
+        {
+            string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Gleanio\");
+            string tf = Path.Combine(up, @"rnd_big_file.txt");
 
-        //    //var source = new TextFile(@"C:\Users\paul.mcilreavy\Dropbox\Development\Code\Gleanio\Gleanio.Test\Files\GLTRANS.txt")
-        //    var source = new TextFile(@"C:\Windows\System32\drivers\etc\HOSTS")
+            if (!File.Exists(tf))
+            {
+                Directory.CreateDirectory(up);
+                using (File.Create(tf)) {}
 
-        //   {
-        //       //TakeLineFunc = line => line.IsNumber(0, 4)
-        //       TakeLineFunc = line =>
-        //           line.Length > 0 &&
-        //           (!line.Contains("#") || line.IndexOf('#') > 0)
-        //   };
+                var sb = new StringBuilder();
+                int bufferedLines = 0;
 
-        //    var target = new SeparatedValueFileTarget(@"C:\Users\Paul\Desktop\HOSTS.txt");
+                for (int i = 0; i < 3000000; i++)
+                {
+                    var rnd = new Random(i);
 
-        //    var extraction = new ExtractLinesToSeparatedValueFile(columns, source, target)
-        //    {
-        //        // SplitLineFunc = line => new[] { line.OriginalLine.Substring(0, 4) }
-        //        SplitLineFunc = line => line.OriginalLine.TrimAndRemoveConsecutiveWhitespace().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries).ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
-        //    };
+                    int day = rnd.Next(1, 27);
+                    int month = rnd.Next(1, 12);
+                    int year = rnd.Next(1950, 2014);
 
-        //    var sw = Stopwatch.StartNew();
+                    int hr = rnd.Next(0, 23);
+                    int mm = rnd.Next(0, 59);
+                    int ss = rnd.Next(0, 59);
 
-        //    extraction.ExtractToTarget();
+                    var dt = new DateTime(year, month, day, hr, mm, ss);
 
-        //    sw.Stop();
-        //    Trace.WriteLine(sw.ElapsedMilliseconds + "ms");
-        //}
+                    sb.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}", dt.ToString("dd/MM/yyyy"), dt.ToString("HH:mm:ss"), new Random(i).Next(1000, 9999), Guid.NewGuid()));
+                    bufferedLines++;
+
+                    if (bufferedLines == 50000)
+                    {
+                        File.AppendAllText(tf, sb.ToString());
+                        sb.Clear();
+                        bufferedLines = 0;
+                    }
+                }
+            }
+        }
 
         #endregion Methods
     }
