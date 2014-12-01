@@ -16,8 +16,6 @@
         private readonly string _filenameWithoutExtension;
         private readonly string _pathToFile;
 
-        private bool _alreadyEnumerated;
-
         #endregion Fields
 
         #region Constructors
@@ -70,14 +68,9 @@
         #region Methods
 
         public IEnumerator<TextFileLine> EnumerateFileLines()
-        //public IEnumerable<TextFileLine> EnumerateFileLines()
         {
-            if (_alreadyEnumerated) throw new InvalidProgramException("Already enumerated!!!");
-
             lock (_enumeratorLock)
             {
-                _alreadyEnumerated = true;
-
                 foreach (var line in System.IO.File.ReadLines(_pathToFile))
                 {
                     if (TakeLineFunc.Invoke(line))
