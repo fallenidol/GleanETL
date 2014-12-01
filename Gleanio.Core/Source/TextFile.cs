@@ -69,7 +69,8 @@
 
         #region Methods
 
-        public IEnumerable<TextFileLine> EnumerateFileLines()
+        public IEnumerator<TextFileLine> EnumerateFileLines()
+        //public IEnumerable<TextFileLine> EnumerateFileLines()
         {
             if (_alreadyEnumerated) throw new InvalidProgramException("Already enumerated!!!");
 
@@ -77,15 +78,11 @@
             {
                 _alreadyEnumerated = true;
 
-                int lineNumber = 1;
-
                 foreach (var line in System.IO.File.ReadLines(_pathToFile))
                 {
                     if (TakeLineFunc.Invoke(line))
                     {
                         yield return new TextFileLine(line);
-
-                        lineNumber++;
                     }
                 }
             }

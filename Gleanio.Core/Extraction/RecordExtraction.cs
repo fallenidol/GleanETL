@@ -91,8 +91,11 @@
             TextFileRecord currentTextFileRecord = null;
             TextFileLine previousLine = null;
 
-            foreach (var line in Source.EnumerateFileLines())
+            var enumerator = Source.EnumerateFileLines();
+            while (enumerator.MoveNext())
             {
+                var line = enumerator.Current;
+
                 if (IsFirstLineOfRecord(line, previousLine))
                 {
                     if (currentTextFileRecord != null)

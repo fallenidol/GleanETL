@@ -79,37 +79,17 @@
 
         public override void ExtractToTarget()
         {
-            //var targetFileLines = new List<object[]>();
-
-            //int lineCount = Source.LinesToImport.Count();
-
-            //Source.LinesToImport.ForEach((i, line) =>
-            //{
-            //    var rawLineValues = SplitLineFunc(line);
-            //    var parsedLineValues = ParseStringValues(rawLineValues);
-
-            //    if (!parsedLineValues.IsNullOrEmpty())
-            //    {
-            //        //targetFileLines.Add(parsedLineValues);
-            //    }
-
-            //    //int percent = (int)(((i+1) / (double)lineCount) * 100d);
-            //    //OnProgressChanged(percent);
-            //});
-
-            //Target.SaveRows(targetFileLines.ToArray());
-
             var linesToSave = EnumerateSourceLines();
 
             Target.CommitData(linesToSave);
-
-            //Debug.WriteLine("*** " + Source.Name.ToUpperInvariant() + " FINISHED. " + targetFileLines.Count + " LINES SAVED!!");
         }
 
         private IEnumerable<object[]> EnumerateSourceLines()
         {
-            foreach (var line in Source.EnumerateFileLines())
+            var enumerator = Source.EnumerateFileLines();
+            while (enumerator.MoveNext())
             {
+                var line = enumerator.Current;
                 var rawLineValues = SplitLineFunc(line);
 
                 var parsedLineValues = ParseStringValues(rawLineValues);

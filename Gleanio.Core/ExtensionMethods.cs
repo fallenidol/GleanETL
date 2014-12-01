@@ -142,7 +142,7 @@
         {
             if (text == null) throw new ArgumentNullException("text");
 
-            text = text.Replace("\t", Constants.SingleSpace);
+            text = text.Replace("\t", Constants.SingleSpace).Trim();
 
             while (text.Contains(Constants.DoubleSpace))
             {

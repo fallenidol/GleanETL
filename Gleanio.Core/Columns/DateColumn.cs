@@ -66,11 +66,7 @@ namespace Gleanio.Core.Columns
 
             if (value != null)
             {
-                string trimmedValue = parsedValue.Trim();
-                while (trimmedValue.Contains(Constants.SingleSpace))
-                {
-                    trimmedValue = trimmedValue.Replace(Constants.SingleSpace, string.Empty);
-                }
+                string trimmedValue = parsedValue.TrimAndRemoveConsecutiveWhitespace();
 
                 if (trimmedValue.Length > 0)
                 {

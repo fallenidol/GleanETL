@@ -9,7 +9,7 @@
 
         public override void CommitData(IEnumerable<object[]> dataRows)
         {
-            dataRows.ForEach((i, o) => Trace.WriteLine(string.Format("Row {0}: {1}", i, string.Join(", ", o))));
+            dataRows.ForEach((i, o) => Trace.WriteLine(string.Format("Row {0}: {1}", i + 1, string.Join(", ", o))));
         }
 
         #endregion Methods

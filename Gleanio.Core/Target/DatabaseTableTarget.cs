@@ -86,19 +86,18 @@
                         if (iterator.MoveNext())
                         {
                             var row = iterator.Current;
+
                             while (iterator.MoveNext())
                             {
-                                row = iterator.Current;
-
                                 AddRow(row, data, batchSize, c, false);
+
+                                row = iterator.Current;
                             }
 
                             AddRow(row, data, batchSize, c, true);
                         }
                     }
 
-                    data.EndLoadData();
-                    data.Clear();
                 }
             }
         }
@@ -137,6 +136,11 @@
                     sbc.DestinationTableName = _schema + "." + _table;
                     sbc.WriteToServer(data);
                 }
+
+
+                data.EndLoadData();
+                data.Clear();
+                data.Columns[0].AutoIncrementSeed += batchSize;
             }
         }
 

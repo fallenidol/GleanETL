@@ -18,6 +18,32 @@
         #region Methods
 
         [TestMethod]
+        public void ExtractWindowsUpdateLogFileToDatabase()
+        {
+            var columns = new BaseColumn[]
+            {
+                new DateColumn("Timestamp", new []{"yyyy-MM-dd HH:mm:ss:fff"}, "yyyy-MM-dd HH:mm:ss.fff"), 
+                new IntColumn("Unknown1"), 
+                new StringColumn("Unknown2"), 
+                new StringColumn("Message", 250)
+            };
+
+            var source = new TextFile(@"C:\Windows\WindowsUpdate.log")
+            {
+                TakeLineFunc = line => line.Length > 0
+            };
+
+            var target = new DatabaseTableTarget(@"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;", "WindowsUpdateLog");
+
+            var extraction = new ExtractLinesToDatabase(columns, source, target)
+            {
+                SplitLineFunc = line => line.Split(0, 23, 28, 33)
+            };
+
+            extraction.ExtractToTarget();
+        }
+
+        [TestMethod]
         public void ExtractHostsFileToDatabase()
         {
             var columns = new BaseColumn[]
@@ -30,12 +56,10 @@
             {
                 TakeLineFunc = line =>
                     line.Length > 0 &&
-                    !line.Contains("0.0.0.0") &&
-                    !line.ContainsCaseInsensitive("localhost") &&
                     (!line.Contains("#") || line.IndexOf('#') > 0)
             };
 
-            var target = new DatabaseTableTarget(@"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;", "Hosts", "dbo");
+            var target = new DatabaseTableTarget(@"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;", "Hosts");
 
             var extraction = new ExtractLinesToDatabase(columns, source, target)
             {
@@ -58,8 +82,6 @@
             {
                 TakeLineFunc = line =>
                     line.Length > 0 &&
-                    !line.Contains("0.0.0.0") &&
-                    !line.ContainsCaseInsensitive("localhost") &&
                     (!line.Contains("#") || line.IndexOf('#') > 0)
             };
 
@@ -76,13 +98,13 @@
         [TestMethod]
         public void GenerateBigFile()
         {
-            string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Gleanio\");
+            string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Gleanio\");
             string tf = Path.Combine(up, @"rnd_big_file.txt");
 
             if (!File.Exists(tf))
             {
                 Directory.CreateDirectory(up);
-                using (File.Create(tf)) {}
+                using (File.Create(tf)) { }
 
                 var sb = new StringBuilder();
                 int bufferedLines = 0;
