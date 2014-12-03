@@ -1,4 +1,6 @@
-﻿namespace Gleanio.Core.Extraction
+﻿using System.Diagnostics;
+
+namespace Gleanio.Core.Extraction
 {
     using System;
     using System.Collections.Generic;
@@ -82,6 +84,8 @@
             var linesToSave = EnumerateSourceLines();
 
             Target.CommitData(linesToSave);
+
+            Trace.WriteLine(string.Format("{0} finished.", Source.FilenameWithExtension));
         }
 
         private IEnumerable<object[]> EnumerateSourceLines()

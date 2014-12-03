@@ -1,4 +1,6 @@
-﻿namespace Gleanio.Core.Extraction
+﻿using System.Diagnostics;
+
+namespace Gleanio.Core.Extraction
 {
     using System;
     using System.Collections.Generic;
@@ -113,6 +115,8 @@
 
                 previousLine = line;
             }
+
+            yield return currentTextFileRecord;
         }
 
         public override void ExtractToTarget()
@@ -134,6 +138,8 @@
             }
 
             Target.CommitData(targetFileLines);
+
+            Trace.WriteLine(string.Format("{0} finished.", Source.FilenameWithExtension));
 
             //Debug.WriteLine("*** " + Source.FilenameWithExtension.ToUpperInvariant() + " FINISHED. " + recordNumber + " RECORDS SAVED!!");
         }

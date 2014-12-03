@@ -100,6 +100,10 @@ namespace Gleanio.Core.Columns
                 {
                     returnValue = string.Format("\"{0}\"", returnValue);
                 }
+                else
+                {
+                    returnValue = returnValue.TrimStart('"').TrimEnd('"');
+                }
             }
             return returnValue;
         }
