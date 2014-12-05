@@ -1,24 +1,16 @@
+using System;
+using System.Text;
+using Gleanio.Core.Enumerations;
+
 namespace Gleanio.Core.Columns
 {
-    using System;
-    using System.Text;
-
-    using Gleanio.Core.Enumerations;
-
     public class StringColumn : BaseColumn<string>
     {
-        #region Fields
-
-        private readonly bool _encloseInDoubleQuotes;
-        private readonly int _maxLength;
-        private readonly StringCapitalisation _stringCapitalisation = StringCapitalisation.DefaultDoNothing;
-        private readonly WhitespaceHandling _whitespaceHandling = WhitespaceHandling.DefaultDoNothing;
-
-        #endregion Fields
-
         #region Constructors
 
-        public StringColumn(string columnName, int maxLength = -1, bool encloseInDoubleQuotes = false, WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace, StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
+        public StringColumn(string columnName, int maxLength = -1, bool encloseInDoubleQuotes = false,
+            WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace,
+            StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
             : base(columnName)
         {
             _whitespaceHandling = whitespaceHandling;
@@ -28,6 +20,15 @@ namespace Gleanio.Core.Columns
         }
 
         #endregion Constructors
+
+        #region Fields
+
+        private readonly bool _encloseInDoubleQuotes;
+        private readonly int _maxLength;
+        private readonly StringCapitalisation _stringCapitalisation = StringCapitalisation.DefaultDoNothing;
+        private readonly WhitespaceHandling _whitespaceHandling = WhitespaceHandling.DefaultDoNothing;
+
+        #endregion Fields
 
         #region Properties
 
@@ -52,13 +53,15 @@ namespace Gleanio.Core.Columns
 
         public override string ParseValue(string value)
         {
-            string returnValue = PreParseValue(value);
+            var returnValue = PreParseValue(value);
 
             if (value != null)
             {
-                if (StringCapitalisation == StringCapitalisation.ToCamelCase && WhitespaceHandling == WhitespaceHandling.RemoveAllWhitespace)
+                if (StringCapitalisation == StringCapitalisation.ToCamelCase &&
+                    WhitespaceHandling == WhitespaceHandling.RemoveAllWhitespace)
                 {
-                    throw new InvalidOperationException("ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
+                    throw new InvalidOperationException(
+                        "ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
                 }
 
                 switch (StringCapitalisation)
@@ -115,14 +118,14 @@ namespace Gleanio.Core.Columns
                 throw new ArgumentNullException();
             }
 
-            string returnValue = string.Empty;
+            var returnValue = string.Empty;
 
             if (input.Trim().Length > 0)
             {
                 var sb = new StringBuilder();
-                string[] arrWords = input.Split(new[] { Constants.SingleSpace }, StringSplitOptions.None);
+                var arrWords = input.Split(new[] {Constants.SingleSpace}, StringSplitOptions.None);
 
-                foreach (string word in arrWords)
+                foreach (var word in arrWords)
                 {
                     sb.Append(Char.ToUpperInvariant(word[0]));
                     sb.Append(word.Substring(1).ToLowerInvariant());

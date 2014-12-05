@@ -1,18 +1,18 @@
-﻿namespace Gleanio.Core
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Gleanio.Core.Columns;
+using Gleanio.Core.Source;
+
+namespace Gleanio.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Source;
-
     public class HelperFunctions
     {
         #region Methods
 
-        public static Func<TextFileRecord, IEnumerable<TextFileLine>> CharacterDelimitedSingleLineRecordParser(char inputDelimiter)
+        public static Func<TextFileRecord, IEnumerable<TextFileLine>> CharacterDelimitedSingleLineRecordParser(
+            char inputDelimiter)
         {
             return record =>
             {
@@ -40,24 +40,25 @@
 
         public static Func<string, bool> LineDoesNotStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {
-            return line => line.Length >= numberOfCharsToTest && !line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
+            return
+                line =>
+                    line.Length >= numberOfCharsToTest &&
+                    !line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
         }
 
         public static Func<string, bool> LineStartsWithDate(int numberOfCharsToTest, string[] formats)
         {
             return line =>
             {
-                bool validLine = false;
+                var validLine = false;
 
                 if (line.Length >= numberOfCharsToTest)
                 {
-
                     var dc = new DateColumn(string.Empty, formats);
-                    string test = line.Substring(0, numberOfCharsToTest);
+                    var test = line.Substring(0, numberOfCharsToTest);
                     validLine = dc.ParseValue(test).HasValue;
                 }
                 return validLine;
-
             };
         }
 
@@ -65,12 +66,19 @@
         {
             int xx;
 
-            return line => line.Length >= numberOfCharsToTest && int.TryParse(line.Substring(0, numberOfCharsToTest).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out xx);
+            return
+                line =>
+                    line.Length >= numberOfCharsToTest &&
+                    int.TryParse(line.Substring(0, numberOfCharsToTest).Trim(), NumberStyles.Integer,
+                        CultureInfo.InvariantCulture, out xx);
         }
 
         public static Func<string, bool> LineStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {
-            return line => line.Length >= numberOfCharsToTest && line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
+            return
+                line =>
+                    line.Length >= numberOfCharsToTest &&
+                    line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
         }
 
         #endregion Methods

@@ -1,11 +1,10 @@
-﻿namespace Gleanio.Core.Extraction
+﻿using System;
+using Gleanio.Core.Columns;
+using Gleanio.Core.Source;
+using Gleanio.Core.Target;
+
+namespace Gleanio.Core.Extraction
 {
-    using System;
-
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Source;
-    using Gleanio.Core.Target;
-
     public abstract class Extract<TExtractTarget> : IExtract
         where TExtractTarget : BaseExtractTarget
     {
@@ -24,23 +23,11 @@
 
         #region Properties
 
-        public TextFile Source
-        {
-            get;
-            private set;
-        }
+        public TextFile Source { get; private set; }
 
-        public IExtractTarget Target
-        {
-            get;
-            private set;
-        }
+        public IExtractTarget Target { get; private set; }
 
-        internal BaseColumn[] Columns
-        {
-            get;
-            private set;
-        }
+        internal BaseColumn[] Columns { get; private set; }
 
         #endregion Properties
 
@@ -62,7 +49,7 @@
                 {
                     if (i < rawLineValues.Length)
                     {
-                        Type colType = column.GetType();
+                        var colType = column.GetType();
 
                         if (colType == typeof (StringNoWhitespaceColumn))
                         {
@@ -101,10 +88,7 @@
 
                 return parsedLineValues;
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
         #endregion Methods

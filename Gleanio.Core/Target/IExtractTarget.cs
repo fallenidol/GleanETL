@@ -1,15 +1,12 @@
-﻿namespace Gleanio.Core.Target
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+namespace Gleanio.Core.Target
+{
     public interface IExtractTarget
     {
         #region Properties
 
-        bool DeleteIfExists
-        {
-            get;
-        }
+        bool DeleteIfExists { get; }
 
         #endregion Properties
 

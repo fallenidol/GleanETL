@@ -1,15 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Gleanio.Core.Columns;
+using Gleanio.Core.Source;
+using Gleanio.Core.Target;
 
 namespace Gleanio.Core.Extraction
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Source;
-    using Gleanio.Core.Target;
-
     public class ExtractRecordsToDatabase : RecordExtraction<DatabaseTableTarget>
     {
         #region Constructors
@@ -55,24 +53,20 @@ namespace Gleanio.Core.Extraction
             : base(columns, source, target)
         {
             IsFirstLineOfRecord = (line, prevLine) => true;
-            ParseRecord = record => record.FileLines.Any() ? new[] { new TextFileLine(record.FileLines.FirstOrDefault().OriginalLine) } : null;
+            ParseRecord =
+                record =>
+                    record.FileLines.Any()
+                        ? new[] {new TextFileLine(record.FileLines.FirstOrDefault().OriginalLine)}
+                        : null;
         }
 
         #endregion Constructors
 
         #region Properties
 
-        public Func<TextFileLine, TextFileLine, bool> IsFirstLineOfRecord
-        {
-            get;
-            set;
-        }
+        public Func<TextFileLine, TextFileLine, bool> IsFirstLineOfRecord { get; set; }
 
-        public Func<TextFileRecord, IEnumerable<TextFileLine>> ParseRecord
-        {
-            get;
-            set;
-        }
+        public Func<TextFileRecord, IEnumerable<TextFileLine>> ParseRecord { get; set; }
 
         #endregion Properties
 
@@ -128,7 +122,7 @@ namespace Gleanio.Core.Extraction
             var targetFileLines = new List<object[]>();
             foreach (var line in lines)
             {
-                string[] rawLineValues = line.OriginalLine.Split(new[] { line.Delimiter }, StringSplitOptions.None);
+                var rawLineValues = line.OriginalLine.Split(new[] {line.Delimiter}, StringSplitOptions.None);
                 var parsedLineValues = ParseStringValues(rawLineValues);
 
                 if (parsedLineValues != null && parsedLineValues.Length > 0)

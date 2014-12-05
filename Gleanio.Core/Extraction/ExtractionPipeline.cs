@@ -1,9 +1,9 @@
-﻿namespace Gleanio.Core.Extraction
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
+namespace Gleanio.Core.Extraction
+{
     public class ExtractionPipeline
     {
         #region Fields
@@ -36,7 +36,7 @@
 
         public void ProcessSeries()
         {
-            for (int i = 0; i < _extracts.Count(); i++)
+            for (var i = 0; i < _extracts.Count(); i++)
             {
                 _extracts[i].ExtractToTarget();
                 _extracts[i] = null;

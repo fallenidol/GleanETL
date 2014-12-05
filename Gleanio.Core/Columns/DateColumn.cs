@@ -1,25 +1,15 @@
+using System;
+using System.Globalization;
+using Gleanio.Core.Enumerations;
+
 namespace Gleanio.Core.Columns
 {
-    using System;
-    using System.Globalization;
-
-    using Gleanio.Core.Enumerations;
-
     public class DateColumn : BaseColumn<DateTime?>
     {
-        #region Fields
-
-        private const string _defaultOutputFormat = "yyyy-MM-dd";
-
-        private readonly string[] _inputFormats;
-        private readonly DateTime? _invalidDateValue;
-        private readonly string _outputFormat;
-
-        #endregion Fields
-
         #region Constructors
 
-        public DateColumn(string columnName, string[] inputFormats = null, string outputFormat = _defaultOutputFormat, DateTime? invalidDateValue = null)
+        public DateColumn(string columnName, string[] inputFormats = null, string outputFormat = _defaultOutputFormat,
+            DateTime? invalidDateValue = null)
             : base(columnName)
         {
             _invalidDateValue = invalidDateValue;
@@ -38,6 +28,16 @@ namespace Gleanio.Core.Columns
 
         #endregion Properties
 
+        #region Fields
+
+        private const string _defaultOutputFormat = "yyyy-MM-dd";
+
+        private readonly string[] _inputFormats;
+        private readonly DateTime? _invalidDateValue;
+        private readonly string _outputFormat;
+
+        #endregion Fields
+
         #region Methods
 
         public static string[] GetStandardDateFormats(StandardDateFormats format = StandardDateFormats.Default)
@@ -49,10 +49,20 @@ namespace Gleanio.Core.Columns
                 case StandardDateFormats.Default:
                 case StandardDateFormats.Australia:
                 case StandardDateFormats.UnitedKingdom:
-                    formats = new[] { "M/yyyy", "MM/yyyy", "/M/yyyy", "/MM/yyyy", "dd/MM/yyyy", "d/M/yyyy", "dd/M/yyyy", "d/MM/yyyy", "ddMMyyyy", "dd/M/yy", "d/MM/yy", "d/M/yy", "/M/yy", "/MM/yy", "M/yy", "MM/yy", "/yy", "yy", "yyyy" };
+                    formats = new[]
+                    {
+                        "M/yyyy", "MM/yyyy", "/M/yyyy", "/MM/yyyy", "dd/MM/yyyy", "d/M/yyyy", "dd/M/yyyy", "d/MM/yyyy",
+                        "ddMMyyyy", "dd/M/yy", "d/MM/yy", "d/M/yy", "/M/yy", "/MM/yy", "M/yy", "MM/yy", "/yy", "yy",
+                        "yyyy"
+                    };
                     break;
                 case StandardDateFormats.UnitedStates:
-                    formats = new[] { "M/yyyy", "MM/yyyy", "M/yyyy", "MM/yyyy", "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy", "MMddyyyy", "M/dd/yy", "MM/d/yy", "M/d/yy", "M/yy", "MM/yy", "M/yy", "MM/yy", "/yy", "yy", "yyyy" };
+                    formats = new[]
+                    {
+                        "M/yyyy", "MM/yyyy", "M/yyyy", "MM/yyyy", "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy",
+                        "MMddyyyy", "M/dd/yy", "MM/d/yy", "M/d/yy", "M/yy", "MM/yy", "M/yy", "MM/yy", "/yy", "yy",
+                        "yyyy"
+                    };
                     break;
             }
             return formats;
@@ -60,13 +70,13 @@ namespace Gleanio.Core.Columns
 
         public override DateTime? ParseValue(string value)
         {
-            string parsedValue = PreParseValue(value);
+            var parsedValue = PreParseValue(value);
 
             DateTime? result = null;
 
             if (value != null)
             {
-                string trimmedValue = parsedValue.TrimAndRemoveConsecutiveWhitespace();
+                var trimmedValue = parsedValue.TrimAndRemoveConsecutiveWhitespace();
 
                 if (trimmedValue.Length > 0)
                 {
@@ -79,13 +89,11 @@ namespace Gleanio.Core.Columns
                         .Replace("/70/", "/07/")
                         .Replace("/80/", "/08/")
                         .Replace("/90/", "/09/")
-
                         .Replace("30/2/", "01/03/")
                         .Replace("31/4/", "30/04/")
                         .Replace("31/6/", "01/07/")
                         .Replace("31/9/", "01/10/")
                         .Replace("31/11/", "01/12/")
-
                         .Replace("29/2/2013", "01/03/2013")
                         .Replace("29/2/2014", "01/03/2014")
                         .Replace("29/2/2015", "01/03/2015")
@@ -93,7 +101,8 @@ namespace Gleanio.Core.Columns
                         ;
 
                     DateTime temp;
-                    if (DateTime.TryParseExact(trimmedValue, _inputFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out temp))
+                    if (DateTime.TryParseExact(trimmedValue, _inputFormats, CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeLocal, out temp))
                     {
                         result = temp;
                     }
@@ -110,7 +119,7 @@ namespace Gleanio.Core.Columns
 
         public string ParseValueAndFormat(string value)
         {
-            DateTime? dt = ParseValue(value);
+            var dt = ParseValue(value);
             string stringValue = null;
 
             if (dt.HasValue)

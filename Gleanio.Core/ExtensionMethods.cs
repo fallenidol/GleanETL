@@ -1,11 +1,11 @@
-﻿namespace Gleanio.Core
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 
+namespace Gleanio.Core
+{
     public static class ExtensionMethods
     {
         #region Methods
@@ -20,10 +20,11 @@
             return text.IndexOf(search, StringComparison.InvariantCultureIgnoreCase) >= 0;
         }
 
-        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector)
         {
             var seenKeys = new HashSet<TKey>();
-            foreach (TSource element in source)
+            foreach (var element in source)
             {
                 if (seenKeys.Add(keySelector(element)))
                 {
@@ -48,7 +49,7 @@
             if (source == null) throw new ArgumentNullException("source");
             if (action == null) throw new ArgumentNullException("action");
 
-            int index = 0;
+            var index = 0;
             foreach (var element in source)
             {
                 action(index, element);
@@ -62,7 +63,7 @@
             if (source == null) throw new ArgumentNullException("source");
             if (func == null) throw new ArgumentNullException("func");
 
-            for (int i = 0; i < source.Length; i++)
+            for (var i = 0; i < source.Length; i++)
             {
                 source[i] = func(i, source[i]);
             }
@@ -75,7 +76,7 @@
             if (source == null) throw new ArgumentNullException("source");
             if (func == null) throw new ArgumentNullException("func");
 
-            for (int i = 0; i < source.Length; i++)
+            for (var i = 0; i < source.Length; i++)
             {
                 source[i] = func(source[i]);
             }
@@ -105,7 +106,7 @@
         {
             if (string.IsNullOrWhiteSpace(text)) return false;
 
-            int length = text.Length - startIndex;
+            var length = text.Length - startIndex;
 
             return IsNumber(text, startIndex, length);
         }
@@ -116,12 +117,13 @@
             if (length <= 0) throw new ArgumentException("length");
             if (startIndex < 0) throw new ArgumentException("startIndex");
 
-            int testLength = Math.Min(text.Length, length);
+            var testLength = Math.Min(text.Length, length);
 
-            string testText = text.Substring(startIndex, testLength);
+            var testText = text.Substring(startIndex, testLength);
 
             double x;
-            return !string.IsNullOrWhiteSpace(testText) && double.TryParse(testText, NumberStyles.Number, CultureInfo.InvariantCulture, out x);
+            return !string.IsNullOrWhiteSpace(testText) &&
+                   double.TryParse(testText, NumberStyles.Number, CultureInfo.InvariantCulture, out x);
         }
 
         public static string RemoveAllWhitespace(this string text)

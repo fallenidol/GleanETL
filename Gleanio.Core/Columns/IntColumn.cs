@@ -1,7 +1,7 @@
+using System.Globalization;
+
 namespace Gleanio.Core.Columns
 {
-    using System.Globalization;
-
     public class IntColumn : BaseColumn<int?>
     {
         #region Constructors
@@ -17,12 +17,15 @@ namespace Gleanio.Core.Columns
 
         public override int? ParseValue(string value)
         {
-            string parsedValue = PreParseValue(value);
+            var parsedValue = PreParseValue(value);
 
             int? result = null;
 
             int temp;
-            if (!string.IsNullOrWhiteSpace(parsedValue) && int.TryParse(parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty).Replace("\"", string.Empty), NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
+            if (!string.IsNullOrWhiteSpace(parsedValue) &&
+                int.TryParse(
+                    parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty).Replace("\"", string.Empty),
+                    NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }

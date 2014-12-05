@@ -1,9 +1,8 @@
+using System.Collections.Generic;
+using Gleanio.Core.Columns;
+
 namespace Gleanio.Core.Target
 {
-    using System.Collections.Generic;
-
-    using Gleanio.Core.Columns;
-
     public abstract class BaseExtractTarget : IExtractTarget
     {
         #region Constructors
@@ -15,25 +14,18 @@ namespace Gleanio.Core.Target
 
         #endregion Constructors
 
-        #region Properties
-
-        public bool DeleteIfExists
-        {
-            get; private set;
-        }
-
-        internal BaseColumn[] Columns
-        {
-            get;
-            set;
-        }
-
-        #endregion Properties
-
         #region Methods
 
         public abstract void CommitData(IEnumerable<object[]> dataRows);
 
         #endregion Methods
+
+        #region Properties
+
+        public bool DeleteIfExists { get; private set; }
+
+        internal BaseColumn[] Columns { get; set; }
+
+        #endregion Properties
     }
 }

@@ -1,8 +1,8 @@
-﻿namespace Gleanio.Core.Target
-{
-    using System.Collections.Generic;
-    using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
+namespace Gleanio.Core.Target
+{
     public class TraceOutputTarget : BaseExtractTarget
     {
         #region Methods

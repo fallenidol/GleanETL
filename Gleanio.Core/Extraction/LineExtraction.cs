@@ -1,14 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Gleanio.Core.Columns;
+using Gleanio.Core.Source;
+using Gleanio.Core.Target;
 
 namespace Gleanio.Core.Extraction
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Source;
-    using Gleanio.Core.Target;
-
     public class ExtractLinesToDatabase : LineExtraction<DatabaseTableTarget>
     {
         #region Constructors
@@ -53,17 +51,14 @@ namespace Gleanio.Core.Extraction
         protected LineExtraction(BaseColumn[] columns, TextFile source, TExtractTarget target)
             : base(columns, source, target)
         {
-            SplitLineFunc = line => line.OriginalLine.Split(new[] { ',' }, StringSplitOptions.None);
+            SplitLineFunc = line => line.OriginalLine.Split(new[] {','}, StringSplitOptions.None);
         }
 
         #endregion Constructors
 
         #region Properties
 
-        public Func<TextFileLine, string[]> SplitLineFunc
-        {
-            get; set;
-        }
+        public Func<TextFileLine, string[]> SplitLineFunc { get; set; }
 
         #endregion Properties
 

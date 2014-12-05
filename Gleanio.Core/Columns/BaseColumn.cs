@@ -1,9 +1,8 @@
-﻿namespace Gleanio.Core.Columns
+﻿using System;
+using Gleanio.Core.EventArgs;
+
+namespace Gleanio.Core.Columns
 {
-    using System;
-
-    using Gleanio.Core.EventArgs;
-
     public abstract class BaseColumn
     {
         #region Constructors
@@ -12,7 +11,9 @@
         {
             if (!dataType.IsClass && Nullable.GetUnderlyingType(dataType) == null)
             {
-                throw new ArgumentException(string.Format("[{0}] is not a nullable type. Please supply a nullable type, such as [DateTime?]", dataType.Name));
+                throw new ArgumentException(
+                    string.Format("[{0}] is not a nullable type. Please supply a nullable type, such as [DateTime?]",
+                        dataType.Name));
             }
 
             DataType = dataType;
@@ -30,29 +31,13 @@
 
         #region Properties
 
-        public string ColumnDisplayName
-        {
-            get;
-            private set;
-        }
+        public string ColumnDisplayName { get; private set; }
 
-        public string ColumnName
-        {
-            get;
-            private set;
-        }
+        public string ColumnName { get; private set; }
 
-        public Type DataType
-        {
-            get;
-            private set;
-        }
+        public Type DataType { get; private set; }
 
-        public Func<string, string> PreParseFunction
-        {
-            get;
-            set;
-        }
+        public Func<string, string> PreParseFunction { get; set; }
 
         #endregion Properties
 
@@ -94,7 +79,7 @@
         #region Constructors
 
         protected BaseColumn(string columnName)
-            : base(columnName, typeof(T))
+            : base(columnName, typeof (T))
         {
         }
 

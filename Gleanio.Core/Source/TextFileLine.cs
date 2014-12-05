@@ -1,9 +1,19 @@
-﻿namespace Gleanio.Core.Source
-{
-    using System;
+﻿using System;
 
+namespace Gleanio.Core.Source
+{
     public class TextFileLine
     {
+        #region Constructors
+
+        public TextFileLine(string originalLineText, string delimiter = null)
+        {
+            _delimiter = delimiter;
+            _originalLine = originalLineText;
+        }
+
+        #endregion Constructors
+
         #region Fields
 
         private readonly string _delimiter;
@@ -14,16 +24,6 @@
         private string _trimmedLowerCaseLine;
 
         #endregion Fields
-
-        #region Constructors
-
-        public TextFileLine(string originalLineText, string delimiter = null)
-        {
-            _delimiter = delimiter;
-            _originalLine = originalLineText;
-        }
-
-        #endregion Constructors
 
         #region Properties
 
@@ -68,17 +68,17 @@
 
         public string[] Split(params int[] columnStartIndexes)
         {
-            string[] values = new string[columnStartIndexes.Length];
+            var values = new string[columnStartIndexes.Length];
 
-            for (int i = 0; i < columnStartIndexes.Length; i++)
+            for (var i = 0; i < columnStartIndexes.Length; i++)
             {
-                int startPos = columnStartIndexes[i];
-                int nextIdx = i + 1;
+                var startPos = columnStartIndexes[i];
+                var nextIdx = i + 1;
 
                 if (nextIdx < columnStartIndexes.Length)
                 {
-                    int nextPos = columnStartIndexes[nextIdx];
-                    int length = nextPos - startPos;
+                    var nextPos = columnStartIndexes[nextIdx];
+                    var length = nextPos - startPos;
 
                     if (length < (LineLength - startPos))
                     {
@@ -102,7 +102,7 @@
 
         public string SplitAndGetString(int index, char delimiter)
         {
-            return OriginalLine.Split(new[] { delimiter }, StringSplitOptions.None)[index];
+            return OriginalLine.Split(new[] {delimiter}, StringSplitOptions.None)[index];
         }
 
         public override string ToString()

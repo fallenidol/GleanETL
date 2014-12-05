@@ -1,7 +1,7 @@
+using System.Globalization;
+
 namespace Gleanio.Core.Columns
 {
-    using System.Globalization;
-
     public class MoneyColumn : BaseColumn<decimal?>
     {
         #region Constructors
@@ -17,12 +17,14 @@ namespace Gleanio.Core.Columns
 
         public override decimal? ParseValue(string value)
         {
-            string parsedValue = PreParseValue(value);
+            var parsedValue = PreParseValue(value);
 
             decimal? result = null;
 
             decimal temp;
-            if (!string.IsNullOrWhiteSpace(parsedValue) && decimal.TryParse(parsedValue.Trim().Replace("\"", string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture, out temp))
+            if (!string.IsNullOrWhiteSpace(parsedValue) &&
+                decimal.TryParse(parsedValue.Trim().Replace("\"", string.Empty), NumberStyles.Currency,
+                    CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }

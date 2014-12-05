@@ -1,18 +1,14 @@
-﻿namespace Gleanio.Core
-{
-    using System;
-    using System.Data;
-    using System.Data.SqlClient;
-    using System.Linq;
-    using System.Text;
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
 
+namespace Gleanio.Core
+{
     internal class SqlTableCreator
     {
         #region Fields
-
-        private SqlConnection _connection;
-        private string _tableName;
-        private SqlTransaction _transaction;
 
         #endregion Fields
 
@@ -25,31 +21,19 @@
 
         public SqlTableCreator(SqlConnection connection, SqlTransaction transaction)
         {
-            _connection = connection;
-            _transaction = transaction;
+            Connection = connection;
+            Transaction = transaction;
         }
 
         #endregion Constructors
 
         #region Properties
 
-        public SqlConnection Connection
-        {
-            get { return _connection; }
-            set { _connection = value; }
-        }
+        public SqlConnection Connection { get; set; }
 
-        public string DestinationTableName
-        {
-            get { return _tableName; }
-            set { _tableName = value; }
-        }
+        public string DestinationTableName { get; set; }
 
-        public SqlTransaction Transaction
-        {
-            get { return _transaction; }
-            set { _transaction = value; }
-        }
+        public SqlTransaction Transaction { get; set; }
 
         #endregion Properties
 
@@ -71,12 +55,12 @@
             {
                 sql.AppendFormattedLine("\tCONSTRAINT [PK_{0}] PRIMARY KEY CLUSTERED (", tableName);
 
-                foreach (DataColumn column in table.PrimaryKey)
+                foreach (var column in table.PrimaryKey)
                 {
                     sql.AppendFormattedLine("\t[{0}],", column.ColumnName);
                 }
 
-                sql = sql.Remove(sql.Length -5, 5);
+                sql = sql.Remove(sql.Length - 5, 5);
                 sql.AppendLine(")");
             }
             sql.AppendLine(")");
@@ -86,39 +70,40 @@
 
         public static string GetCreateSql(string tableName, DataTable schema, int[] primaryKeys)
         {
-            string sql = "CREATE TABLE [" + tableName + "] (\n";
+            var sql = "CREATE TABLE [" + tableName + "] (\n";
 
             // columns
             foreach (DataRow column in schema.Rows)
             {
-                if (!(schema.Columns.Contains("IsHidden") && (bool)column["IsHidden"]))
+                if (!(schema.Columns.Contains("IsHidden") && (bool) column["IsHidden"]))
                 {
                     sql += "\t[" + column["ColumnName"] + "] " + SQLGetType(column);
 
-                    if (schema.Columns.Contains("AllowDBNull") && (bool)column["AllowDBNull"] == false)
+                    if (schema.Columns.Contains("AllowDBNull") && (bool) column["AllowDBNull"] == false)
                         sql += " NOT NULL";
 
                     sql += ",\n";
                 }
             }
-            sql = sql.TrimEnd(new char[] { ',', '\n' }) + "\n";
+            sql = sql.TrimEnd(',', '\n') + "\n";
 
             // primary keys
-            string pk = ", CONSTRAINT PK_" + tableName + " PRIMARY KEY CLUSTERED (";
-            bool hasKeys = (primaryKeys != null && primaryKeys.Length > 0);
+            var pk = ", CONSTRAINT PK_" + tableName + " PRIMARY KEY CLUSTERED (";
+            var hasKeys = (primaryKeys != null && primaryKeys.Length > 0);
             if (hasKeys)
             {
                 // user defined keys
-                pk = primaryKeys.Aggregate(pk, (current, key) => current + (schema.Rows[key]["ColumnName"].ToString() + ", "));
+                pk = primaryKeys.Aggregate(pk,
+                    (current, key) => current + (schema.Rows[key]["ColumnName"].ToString() + ", "));
             }
             else
             {
                 // check schema for keys
-                string keys = string.Join(", ", GetPrimaryKeys(schema));
+                var keys = string.Join(", ", GetPrimaryKeys(schema));
                 pk += keys;
                 hasKeys = keys.Length > 0;
             }
-            pk = pk.TrimEnd(new char[] { ',', ' ', '\n' }) + ")\n";
+            pk = pk.TrimEnd(',', ' ', '\n') + ")\n";
             if (hasKeys) sql += pk;
 
             sql += ")";
@@ -128,7 +113,9 @@
 
         public static string[] GetPrimaryKeys(DataTable schema)
         {
-            return (from DataRow column in schema.Rows where schema.Columns.Contains("IsKey") && (bool)column["IsKey"] select column["ColumnName"].ToString()).ToArray();
+            return (from DataRow column in schema.Rows
+                where schema.Columns.Contains("IsKey") && (bool) column["IsKey"]
+                select column["ColumnName"].ToString()).ToArray();
         }
 
         // Return T-SQL data type definition, based on schema definition for a column
@@ -137,14 +124,13 @@
             switch (type.ToString())
             {
                 case "System.String":
-                    int colSize = columnSize == 0 ? 255 : columnSize;
+                    var colSize = columnSize == 0 ? 255 : columnSize;
                     return "VARCHAR(" + ((colSize == -1) ? "255" : (colSize > 8000) ? "MAX" : colSize.ToString()) + ")";
 
                 case "System.Decimal":
                     if (numericScale > 0)
                         return "Decimal(17," + numericScale + ")";
-                    else
-                        return "Decimal";
+                    return "Decimal";
 
                 case "System.Double":
                 case "System.Single":
@@ -178,9 +164,9 @@
         public static string SQLGetType(DataRow schemaRow)
         {
             return SQLGetType(schemaRow["DataType"],
-                                int.Parse(schemaRow["ColumnSize"].ToString()),
-                                int.Parse(schemaRow["NumericPrecision"].ToString()),
-                                int.Parse(schemaRow["NumericScale"].ToString()));
+                int.Parse(schemaRow["ColumnSize"].ToString()),
+                int.Parse(schemaRow["NumericPrecision"].ToString()),
+                int.Parse(schemaRow["NumericScale"].ToString()));
         }
 
         // Overload based on DataColumn from DataTable type
@@ -197,7 +183,7 @@
         public object Create(DataTable schema, int numKeys)
         {
             var primaryKeys = new int[numKeys];
-            for (int i = 0; i < numKeys; i++)
+            for (var i = 0; i < numKeys; i++)
             {
                 primaryKeys[i] = i;
             }
@@ -206,26 +192,26 @@
 
         public object Create(DataTable schema, int[] primaryKeys)
         {
-            string sql = GetCreateSql(_tableName, schema, primaryKeys);
+            var sql = GetCreateSql(DestinationTableName, schema, primaryKeys);
 
             SqlCommand cmd;
-            if (_transaction != null && _transaction.Connection != null)
-                cmd = new SqlCommand(sql, _connection, _transaction);
+            if (Transaction != null && Transaction.Connection != null)
+                cmd = new SqlCommand(sql, Connection, Transaction);
             else
-                cmd = new SqlCommand(sql, _connection);
+                cmd = new SqlCommand(sql, Connection);
 
             return cmd.ExecuteNonQuery();
         }
 
         public object CreateFromDataTable(DataTable table)
         {
-            string sql = GetCreateFromDataTableSql(_tableName, table);
+            var sql = GetCreateFromDataTableSql(DestinationTableName, table);
 
             SqlCommand cmd;
-            if (_transaction != null && _transaction.Connection != null)
-                cmd = new SqlCommand(sql, _connection, _transaction);
+            if (Transaction != null && Transaction.Connection != null)
+                cmd = new SqlCommand(sql, Connection, Transaction);
             else
-                cmd = new SqlCommand(sql, _connection);
+                cmd = new SqlCommand(sql, Connection);
 
             return cmd.ExecuteNonQuery();
         }

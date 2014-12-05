@@ -1,28 +1,18 @@
-﻿namespace Gleanio.Core.Target
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using Gleanio.Core.Columns;
+
+namespace Gleanio.Core.Target
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Data.SqlClient;
-    using System.Linq;
-
-    using Gleanio.Core.Columns;
-
     public class DatabaseTableTarget : BaseExtractTarget
     {
-        #region Fields
-
-        private readonly string _connectionString;
-        private readonly string _schema;
-        private readonly string _table;
-
-        private bool firstTime = true;
-
-        #endregion Fields
-
         #region Constructors
 
-        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo", bool deleteTargetIfExists = true)
+        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo",
+            bool deleteTargetIfExists = true)
             : base(deleteTargetIfExists)
         {
             _table = targetTable.Trim();
@@ -36,6 +26,16 @@
 
         #endregion Constructors
 
+        #region Fields
+
+        private readonly string _connectionString;
+        private readonly string _schema;
+        private readonly string _table;
+
+        private bool firstTime = true;
+
+        #endregion Fields
+
         #region Methods
 
         public override void CommitData(IEnumerable<object[]> dataRows)
@@ -48,7 +48,12 @@
 
                 if (DeleteIfExists && firstTime)
                 {
-                    using (var cmd = new SqlCommand(string.Format("IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' and TABLE_SCHEMA='{0}') TRUNCATE TABLE {0}.{1};", _schema, _table), c))
+                    using (
+                        var cmd =
+                            new SqlCommand(
+                                string.Format(
+                                    "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' and TABLE_SCHEMA='{0}') TRUNCATE TABLE {0}.{1};",
+                                    _schema, _table), c))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -56,9 +61,9 @@
 
                 using (var data = new DataTable(_table))
                 {
-                    int ordinal = 0;
+                    var ordinal = 0;
 
-                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof(long));
+                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof (long));
                     rowId.Unique = true;
                     rowId.AutoIncrementSeed = 1;
                     rowId.AutoIncrementStep = 1;
@@ -67,9 +72,9 @@
                     data.Columns.Add(rowId);
                     rowId.SetOrdinal(ordinal);
 
-                    data.PrimaryKey = new[] { rowId };
+                    data.PrimaryKey = new[] {rowId};
 
-                    foreach (BaseColumn col in Columns)
+                    foreach (var col in Columns)
                     {
                         ordinal++;
 
@@ -97,7 +102,6 @@
                             AddRow(row, data, batchSize, c, true);
                         }
                     }
-
                 }
             }
         }
@@ -115,14 +119,18 @@
             {
                 if (firstTime)
                 {
-                    string schemaSQL = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema + "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
+                    var schemaSQL = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema +
+                                    "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
                     using (var cmd = new SqlCommand(schemaSQL, c))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
-                    string createTableSQL = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
-                    string dropCreateSql = "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema + "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " + createTableSQL + "; ";
+                    var createTableSQL = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
+                    var dropCreateSql =
+                        "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema +
+                        "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " +
+                        createTableSQL + "; ";
                     using (var cmd = new SqlCommand(dropCreateSql, c))
                     {
                         cmd.ExecuteNonQuery();
@@ -151,37 +159,37 @@
             dc.AllowDBNull = true;
             dc.ReadOnly = true;
 
-            Type colType = col.GetType();
+            var colType = col.GetType();
 
-            if (colType == typeof(StringNoWhitespaceColumn))
+            if (colType == typeof (StringNoWhitespaceColumn))
             {
-                dc.DataType = typeof(string);
-
-                var c = col as StringColumn;
-                dc.MaxLength = c.MaxLength;
-            }
-            else if (colType == typeof(StringColumn))
-            {
-                dc.DataType = typeof(string);
+                dc.DataType = typeof (string);
 
                 var c = col as StringColumn;
                 dc.MaxLength = c.MaxLength;
             }
-            else if (colType == typeof(IntColumn))
+            else if (colType == typeof (StringColumn))
             {
-                dc.DataType = typeof(int);
+                dc.DataType = typeof (string);
+
+                var c = col as StringColumn;
+                dc.MaxLength = c.MaxLength;
             }
-            else if (colType == typeof(DecimalColumn))
+            else if (colType == typeof (IntColumn))
             {
-                dc.DataType = typeof(decimal);
+                dc.DataType = typeof (int);
             }
-            else if (colType == typeof(MoneyColumn))
+            else if (colType == typeof (DecimalColumn))
             {
-                dc.DataType = typeof(decimal);
+                dc.DataType = typeof (decimal);
             }
-            else if (colType == typeof(DateColumn))
+            else if (colType == typeof (MoneyColumn))
             {
-                dc.DataType = typeof(DateTime);
+                dc.DataType = typeof (decimal);
+            }
+            else if (colType == typeof (DateColumn))
+            {
+                dc.DataType = typeof (DateTime);
                 dc.DateTimeMode = DataSetDateTime.Local;
             }
 
