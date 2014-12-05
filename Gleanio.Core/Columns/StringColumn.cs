@@ -25,8 +25,8 @@ namespace Gleanio.Core.Columns
 
         private readonly bool _encloseInDoubleQuotes;
         private readonly int _maxLength;
-        private readonly StringCapitalisation _stringCapitalisation = StringCapitalisation.DefaultDoNothing;
-        private readonly WhitespaceHandling _whitespaceHandling = WhitespaceHandling.DefaultDoNothing;
+        private readonly StringCapitalisation _stringCapitalisation;
+        private readonly WhitespaceHandling _whitespaceHandling;
 
         #endregion Fields
 
@@ -99,14 +99,7 @@ namespace Gleanio.Core.Columns
                     returnValue = string.Empty;
                 }
 
-                if (_encloseInDoubleQuotes)
-                {
-                    returnValue = string.Format("\"{0}\"", returnValue);
-                }
-                else
-                {
-                    returnValue = returnValue.TrimStart('"').TrimEnd('"');
-                }
+                returnValue = _encloseInDoubleQuotes ? string.Format("\"{0}\"", returnValue) : returnValue.TrimStart('"').TrimEnd('"');
             }
             return returnValue;
         }

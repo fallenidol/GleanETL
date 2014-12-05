@@ -47,7 +47,7 @@ namespace Gleanio.Core
 
             foreach (DataColumn column in table.Columns)
             {
-                sql.AppendFormattedLine("\t[{0}] {1}, ", column.ColumnName, SQLGetType(column));
+                sql.AppendFormattedLine("\t[{0}] {1}, ", column.ColumnName, SqlGetType(column));
             }
             sql = sql.Remove(sql.Length - 6, 6);
 
@@ -77,7 +77,7 @@ namespace Gleanio.Core
             {
                 if (!(schema.Columns.Contains("IsHidden") && (bool) column["IsHidden"]))
                 {
-                    sql += "\t[" + column["ColumnName"] + "] " + SQLGetType(column);
+                    sql += "\t[" + column["ColumnName"] + "] " + SqlGetType(column);
 
                     if (schema.Columns.Contains("AllowDBNull") && (bool) column["AllowDBNull"] == false)
                         sql += " NOT NULL";
@@ -119,7 +119,7 @@ namespace Gleanio.Core
         }
 
         // Return T-SQL data type definition, based on schema definition for a column
-        public static string SQLGetType(object type, int columnSize, int numericPrecision, int numericScale)
+        public static string SqlGetType(object type, int columnSize, int numericPrecision, int numericScale)
         {
             switch (type.ToString())
             {
@@ -161,18 +161,18 @@ namespace Gleanio.Core
         }
 
         // Overload based on row from schema table
-        public static string SQLGetType(DataRow schemaRow)
+        public static string SqlGetType(DataRow schemaRow)
         {
-            return SQLGetType(schemaRow["DataType"],
+            return SqlGetType(schemaRow["DataType"],
                 int.Parse(schemaRow["ColumnSize"].ToString()),
                 int.Parse(schemaRow["NumericPrecision"].ToString()),
                 int.Parse(schemaRow["NumericScale"].ToString()));
         }
 
         // Overload based on DataColumn from DataTable type
-        public static string SQLGetType(DataColumn column)
+        public static string SqlGetType(DataColumn column)
         {
-            return SQLGetType(column.DataType, column.MaxLength, 10, 2);
+            return SqlGetType(column.DataType, column.MaxLength, 10, 2);
         }
 
         public object Create(DataTable schema)

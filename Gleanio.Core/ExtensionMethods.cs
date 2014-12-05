@@ -24,13 +24,7 @@ namespace Gleanio.Core
             Func<TSource, TKey> keySelector)
         {
             var seenKeys = new HashSet<TKey>();
-            foreach (var element in source)
-            {
-                if (seenKeys.Add(keySelector(element)))
-                {
-                    yield return element;
-                }
-            }
+            return source.Where(element => seenKeys.Add(keySelector(element)));
         }
 
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)

@@ -8,42 +8,6 @@ using Gleanio.Core.Target;
 
 namespace Gleanio.Core.Extraction
 {
-    public class ExtractRecordsToDatabase : RecordExtraction<DatabaseTableTarget>
-    {
-        #region Constructors
-
-        public ExtractRecordsToDatabase(BaseColumn[] columns, TextFile source, DatabaseTableTarget target)
-            : base(columns, source, target)
-        {
-        }
-
-        #endregion Constructors
-    }
-
-    public class ExtractRecordsToSeparatedValueFile : RecordExtraction<SeparatedValueFileTarget>
-    {
-        #region Constructors
-
-        public ExtractRecordsToSeparatedValueFile(BaseColumn[] columns, TextFile source, SeparatedValueFileTarget target)
-            : base(columns, source, target)
-        {
-        }
-
-        #endregion Constructors
-    }
-
-    public class ExtractRecordsToTrace : RecordExtraction<TraceOutputTarget>
-    {
-        #region Constructors
-
-        public ExtractRecordsToTrace(BaseColumn[] columns, TextFile source, TraceOutputTarget target)
-            : base(columns, source, target)
-        {
-        }
-
-        #endregion Constructors
-    }
-
     public class RecordExtraction<TExtractTarget> : Extract<TExtractTarget>
         where TExtractTarget : BaseExtractTarget
     {
@@ -55,9 +19,12 @@ namespace Gleanio.Core.Extraction
             IsFirstLineOfRecord = (line, prevLine) => true;
             ParseRecord =
                 record =>
-                    record.FileLines.Any()
-                        ? new[] {new TextFileLine(record.FileLines.FirstOrDefault().OriginalLine)}
-                        : null;
+                {
+                    var firstOrDefault = record.FileLines.FirstOrDefault();
+                    return firstOrDefault != null ? (record.FileLines.Any()
+                                  ? new[] {new TextFileLine(firstOrDefault.OriginalLine)}
+                                  : null) : null;
+                };
         }
 
         #endregion Constructors
@@ -120,6 +87,7 @@ namespace Gleanio.Core.Extraction
             var lines = FlattenRecordsIntoLines(records);
 
             var targetFileLines = new List<object[]>();
+            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var line in lines)
             {
                 var rawLineValues = line.OriginalLine.Split(new[] {line.Delimiter}, StringSplitOptions.None);
@@ -140,6 +108,7 @@ namespace Gleanio.Core.Extraction
 
         public IEnumerable<TextFileLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
         {
+            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var record in records)
             {
                 if (record.FileLines.Any())

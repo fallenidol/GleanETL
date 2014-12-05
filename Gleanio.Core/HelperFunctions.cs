@@ -25,8 +25,7 @@ namespace Gleanio.Core
                     if (line != null)
                     {
                         var values = line.OriginalLine.Split(inputDelimiter);
-                        returnLines = new List<TextFileLine>();
-                        returnLines.Add(new TextFileLine(String.Join("~", values), "~"));
+                        returnLines = new List<TextFileLine> { new TextFileLine(String.Join("~", values), "~") };
                     }
                 }
                 else

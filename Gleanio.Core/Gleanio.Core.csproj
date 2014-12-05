@@ -53,6 +53,12 @@
     <Compile Include="Enumerations\StandardDateFormats.cs" />
     <Compile Include="Columns\StringNoWhitespaceColumn.cs" />
     <Compile Include="Extraction\ExtractionPipeline.cs" />
+    <Compile Include="Extraction\ExtractLinesToDatabase.cs" />
+    <Compile Include="Extraction\ExtractLinesToSeparatedValueFile.cs" />
+    <Compile Include="Extraction\ExtractLinesToTrace.cs" />
+    <Compile Include="Extraction\ExtractRecordsToDatabase.cs" />
+    <Compile Include="Extraction\ExtractRecordsToSeparatedValueFile.cs" />
+    <Compile Include="Extraction\ExtractRecordsToTrace.cs" />
     <Compile Include="Extraction\IExtract.cs" />
     <Compile Include="Extraction\IExtractPackage.cs" />
     <Compile Include="ExtensionMethods.cs" />
@@ -99,7 +105,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>rd /q /s "$(SolutionDir)TestResults"
+    <PreBuildEvent>md "$(ProjectDir)bin\$(ConfigurationName)"
+md "$(ProjectDir)obj\$(ConfigurationName)"
+rd /q /s "$(SolutionDir)TestResults"
 rd /q /s "$(ProjectDir)bin"
 rd /q /s "$(ProjectDir)obj"
 md "$(ProjectDir)bin\$(ConfigurationName)"

@@ -18,8 +18,7 @@ namespace Gleanio.Core.Target
             _table = targetTable.Trim();
             _schema = targetSchema.Trim();
 
-            var csb = new SqlConnectionStringBuilder(connectionString);
-            csb.PersistSecurityInfo = true;
+            var csb = new SqlConnectionStringBuilder(connectionString) {PersistSecurityInfo = true};
 
             _connectionString = csb.ConnectionString;
         }
@@ -32,7 +31,7 @@ namespace Gleanio.Core.Target
         private readonly string _schema;
         private readonly string _table;
 
-        private bool firstTime = true;
+        private bool _firstTime = true;
 
         #endregion Fields
 
@@ -46,7 +45,7 @@ namespace Gleanio.Core.Target
             {
                 c.Open();
 
-                if (DeleteIfExists && firstTime)
+                if (DeleteIfExists && _firstTime)
                 {
                     using (
                         var cmd =
@@ -63,12 +62,14 @@ namespace Gleanio.Core.Target
                 {
                     var ordinal = 0;
 
-                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof (long));
-                    rowId.Unique = true;
-                    rowId.AutoIncrementSeed = 1;
-                    rowId.AutoIncrementStep = 1;
-                    rowId.AutoIncrement = true;
-                    rowId.AllowDBNull = false;
+                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof (long))
+                    {
+                        Unique = true,
+                        AutoIncrementSeed = 1,
+                        AutoIncrementStep = 1,
+                        AutoIncrement = true,
+                        AllowDBNull = false
+                    };
                     data.Columns.Add(rowId);
                     rowId.SetOrdinal(ordinal);
 
@@ -117,26 +118,26 @@ namespace Gleanio.Core.Target
 
             if (data.Rows.Count == batchSize || isLastRow)
             {
-                if (firstTime)
+                if (_firstTime)
                 {
-                    var schemaSQL = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema +
+                    var schemaSql = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema +
                                     "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
-                    using (var cmd = new SqlCommand(schemaSQL, c))
+                    using (var cmd = new SqlCommand(schemaSql, c))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
-                    var createTableSQL = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
+                    var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
                     var dropCreateSql =
                         "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema +
                         "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " +
-                        createTableSQL + "; ";
+                        createTableSql + "; ";
                     using (var cmd = new SqlCommand(dropCreateSql, c))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
-                    firstTime = false;
+                    _firstTime = false;
                 }
 
                 using (var sbc = new SqlBulkCopy(c.ConnectionString, SqlBulkCopyOptions.TableLock))
@@ -154,10 +155,12 @@ namespace Gleanio.Core.Target
 
         private DataColumn GetDataColumn(BaseColumn col)
         {
-            var dc = new DataColumn(col.ColumnName);
-            dc.Caption = col.ColumnDisplayName;
-            dc.AllowDBNull = true;
-            dc.ReadOnly = true;
+            var dc = new DataColumn(col.ColumnName)
+            {
+                Caption = col.ColumnDisplayName,
+                AllowDBNull = true,
+                ReadOnly = true
+            };
 
             var colType = col.GetType();
 
@@ -166,14 +169,14 @@ namespace Gleanio.Core.Target
                 dc.DataType = typeof (string);
 
                 var c = col as StringColumn;
-                dc.MaxLength = c.MaxLength;
+                if (c != null) dc.MaxLength = c.MaxLength;
             }
             else if (colType == typeof (StringColumn))
             {
                 dc.DataType = typeof (string);
 
                 var c = col as StringColumn;
-                dc.MaxLength = c.MaxLength;
+                if (c != null) dc.MaxLength = c.MaxLength;
             }
             else if (colType == typeof (IntColumn))
             {

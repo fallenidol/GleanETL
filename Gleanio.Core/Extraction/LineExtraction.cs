@@ -7,42 +7,6 @@ using Gleanio.Core.Target;
 
 namespace Gleanio.Core.Extraction
 {
-    public class ExtractLinesToDatabase : LineExtraction<DatabaseTableTarget>
-    {
-        #region Constructors
-
-        public ExtractLinesToDatabase(BaseColumn[] columns, TextFile source, DatabaseTableTarget target)
-            : base(columns, source, target)
-        {
-        }
-
-        #endregion Constructors
-    }
-
-    public class ExtractLinesToSeparatedValueFile : LineExtraction<SeparatedValueFileTarget>
-    {
-        #region Constructors
-
-        public ExtractLinesToSeparatedValueFile(BaseColumn[] columns, TextFile source, SeparatedValueFileTarget target)
-            : base(columns, source, target)
-        {
-        }
-
-        #endregion Constructors
-    }
-
-    public class ExtractLinesToTrace : LineExtraction<TraceOutputTarget>
-    {
-        #region Constructors
-
-        public ExtractLinesToTrace(BaseColumn[] columns, TextFile source, TraceOutputTarget target)
-            : base(columns, source, target)
-        {
-        }
-
-        #endregion Constructors
-    }
-
     public class LineExtraction<TExtractTarget> : Extract<TExtractTarget>
         where TExtractTarget : BaseExtractTarget
     {

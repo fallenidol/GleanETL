@@ -8,7 +8,7 @@ namespace Gleanio.Core.Columns
     {
         #region Constructors
 
-        public DateColumn(string columnName, string[] inputFormats = null, string outputFormat = _defaultOutputFormat,
+        public DateColumn(string columnName, string[] inputFormats = null, string outputFormat = DefaultOutputFormat,
             DateTime? invalidDateValue = null)
             : base(columnName)
         {
@@ -30,7 +30,7 @@ namespace Gleanio.Core.Columns
 
         #region Fields
 
-        private const string _defaultOutputFormat = "yyyy-MM-dd";
+        private const string DefaultOutputFormat = "yyyy-MM-dd";
 
         private readonly string[] _inputFormats;
         private readonly DateTime? _invalidDateValue;
