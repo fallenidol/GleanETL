@@ -6,7 +6,7 @@ namespace Gleanio.Core.Columns
     {
         #region Constructors
 
-        public MoneyColumn(string columnName)
+        public MoneyColumn(string columnName = null)
             : base(columnName)
         {
         }

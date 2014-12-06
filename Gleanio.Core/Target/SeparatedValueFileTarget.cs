@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -21,7 +20,7 @@ namespace Gleanio.Core.Target
 
         #region Methods
 
-        public override void CommitData(IEnumerable<object[]> dataRows)
+        public override long CommitData(IEnumerable<object[]> dataRows)
         {
             if (_firstSave && DeleteIfExists && File.Exists(TargetFilePath))
             {
@@ -43,8 +42,6 @@ namespace Gleanio.Core.Target
                 {
                     File.AppendAllText(TargetFilePath, rows.ToString());
                     rows.Clear();
-
-                    //Debug.WriteLine("Committed {0} rows.", rowCount);
                 }
             }
 
@@ -54,7 +51,7 @@ namespace Gleanio.Core.Target
                 rows.Clear();
             }
 
-            Debug.WriteLine("DONE! Committed {0} rows.", rowCount);
+            return rowCount;
         }
 
         #endregion Methods

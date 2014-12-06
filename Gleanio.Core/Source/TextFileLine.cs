@@ -4,62 +4,31 @@ namespace Gleanio.Core.Source
 {
     public class TextFileLine
     {
+        #region Fields
+
+        private readonly string _originalLine;
+
+        #endregion Fields
+
         #region Constructors
 
-        public TextFileLine(string originalLineText, string delimiter = null)
+        public TextFileLine(string originalLineText)
         {
-            _delimiter = delimiter;
             _originalLine = originalLineText;
         }
 
         #endregion Constructors
 
-        #region Fields
-
-        private readonly string _delimiter;
-        private readonly string _originalLine;
-
-        private string _lowerCaseLine;
-        private string _trimmedLine;
-        private string _trimmedLowerCaseLine;
-
-        #endregion Fields
-
         #region Properties
-
-        public string Delimiter
-        {
-            get { return _delimiter; }
-        }
 
         public int LineLength
         {
             get { return _originalLine.Length; }
         }
 
-        public string LowerCaseLine
-        {
-            get { return _lowerCaseLine ?? (_lowerCaseLine = _originalLine.ToLowerInvariant()); }
-        }
-
         public string OriginalLine
         {
             get { return _originalLine; }
-        }
-
-        public string TrimmedLine
-        {
-            get { return _trimmedLine ?? (_trimmedLine = _originalLine.Trim()); }
-        }
-
-        public int TrimmedLineLength
-        {
-            get { return TrimmedLine.Length; }
-        }
-
-        public string TrimmedLowerCaseLine
-        {
-            get { return _trimmedLowerCaseLine ?? (_trimmedLowerCaseLine = TrimmedLine.ToLowerInvariant()); }
         }
 
         #endregion Properties

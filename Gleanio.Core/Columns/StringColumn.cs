@@ -8,7 +8,7 @@ namespace Gleanio.Core.Columns
     {
         #region Constructors
 
-        public StringColumn(string columnName, int maxLength = -1, bool encloseInDoubleQuotes = false,
+        public StringColumn(string columnName = null, int maxLength = -1, bool encloseInDoubleQuotes = false,
             WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace,
             StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
             : base(columnName)
@@ -17,6 +17,7 @@ namespace Gleanio.Core.Columns
             _stringCapitalisation = stringCapitalisation;
             _maxLength = maxLength;
             _encloseInDoubleQuotes = encloseInDoubleQuotes;
+            DetectedMaxLength = -1;
         }
 
         #endregion Constructors
@@ -36,6 +37,8 @@ namespace Gleanio.Core.Columns
         {
             get { return _maxLength; }
         }
+
+        public int DetectedMaxLength { get; internal set; }
 
         public StringCapitalisation StringCapitalisation
         {
@@ -99,7 +102,9 @@ namespace Gleanio.Core.Columns
                     returnValue = string.Empty;
                 }
 
-                returnValue = _encloseInDoubleQuotes ? string.Format("\"{0}\"", returnValue) : returnValue.TrimStart('"').TrimEnd('"');
+                returnValue = _encloseInDoubleQuotes
+                    ? string.Format("\"{0}\"", returnValue)
+                    : returnValue.TrimStart('"').TrimEnd('"');
             }
             return returnValue;
         }

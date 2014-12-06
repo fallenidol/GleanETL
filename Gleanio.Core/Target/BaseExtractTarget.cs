@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Gleanio.Core.Columns;
 
 namespace Gleanio.Core.Target
@@ -16,7 +18,16 @@ namespace Gleanio.Core.Target
 
         #region Methods
 
-        public abstract void CommitData(IEnumerable<object[]> dataRows);
+        protected object[] ValuesWithoutIgnoredColumns(object[] row)
+        {
+            var ic = Columns.OfType<IgnoredColumn>();
+            var iic = ic.Select(column => Array.IndexOf(Columns, column));
+            var io = row.Where((o, i) => iic.Contains(i));
+            var valuesWithoutIgnoredColumns = row.Except(io).ToArray();
+            return valuesWithoutIgnoredColumns;
+        }
+
+        public abstract long CommitData(IEnumerable<object[]> dataRows);
 
         #endregion Methods
 

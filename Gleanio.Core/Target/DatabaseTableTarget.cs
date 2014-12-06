@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using Gleanio.Core.Columns;
 
 namespace Gleanio.Core.Target
@@ -37,9 +38,10 @@ namespace Gleanio.Core.Target
 
         #region Methods
 
-        public override void CommitData(IEnumerable<object[]> dataRows)
+        public override long CommitData(IEnumerable<object[]> dataRows)
         {
             const int batchSize = 10000;
+            long lineCount = 0;
 
             using (var c = new SqlConnection(_connectionString))
             {
@@ -77,12 +79,15 @@ namespace Gleanio.Core.Target
 
                     foreach (var col in Columns)
                     {
-                        ordinal++;
+                        if (!(col is IgnoredColumn))
+                        {
+                            ordinal++;
 
-                        var dc = GetDataColumn(col);
-                        data.Columns.Add(dc);
+                            var dc = GetDataColumn(col);
+                            data.Columns.Add(dc);
 
-                        dc.SetOrdinal(ordinal);
+                            dc.SetOrdinal(ordinal);
+                        }
                     }
 
                     data.BeginLoadData();
@@ -96,21 +101,39 @@ namespace Gleanio.Core.Target
                             while (iterator.MoveNext())
                             {
                                 AddRow(row, data, batchSize, c, false);
+                                lineCount++;
 
                                 row = iterator.Current;
                             }
 
                             AddRow(row, data, batchSize, c, true);
+                            lineCount++;
                         }
+                    }
+
+                    var sqlBuilder = new StringBuilder();
+                    foreach (var column in Columns.OfType<StringColumn>())
+                    {
+                        sqlBuilder.AppendLine(string.Format(
+                            "ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table,
+                            column.ColumnName, column.DetectedMaxLength));
+                    }
+                    using (var cmd = new SqlCommand(sqlBuilder.ToString(), c))
+                    {
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
+
+            return lineCount;
         }
 
         private void AddRow(object[] row, DataTable data, int batchSize, SqlConnection c, bool isLastRow)
         {
-            var values = new List<object>(row.ToArray());
-            values.Insert(0, null);
+            var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
+
+            var values = (new object[] {null}).Union(valuesWithoutIgnoredColumns);
+
             if (data.Rows.Count <= batchSize)
             {
                 data.Rows.Add(values.ToArray());
@@ -146,7 +169,6 @@ namespace Gleanio.Core.Target
                     sbc.WriteToServer(data);
                 }
 
-
                 data.EndLoadData();
                 data.Clear();
                 data.Columns[0].AutoIncrementSeed += batchSize;
@@ -167,16 +189,10 @@ namespace Gleanio.Core.Target
             if (colType == typeof (StringNoWhitespaceColumn))
             {
                 dc.DataType = typeof (string);
-
-                var c = col as StringColumn;
-                if (c != null) dc.MaxLength = c.MaxLength;
             }
             else if (colType == typeof (StringColumn))
             {
                 dc.DataType = typeof (string);
-
-                var c = col as StringColumn;
-                if (c != null) dc.MaxLength = c.MaxLength;
             }
             else if (colType == typeof (IntColumn))
             {

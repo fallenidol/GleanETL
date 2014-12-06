@@ -28,36 +28,39 @@ namespace Gleanio.Core.Extraction
 
         #region Methods
 
-        public override void AfterExtract()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void BeforeExtract()
-        {
-            throw new NotImplementedException();
-        }
-
         public override void ExtractToTarget()
         {
+            var sw = Stopwatch.StartNew();
             var linesToSave = EnumerateSourceLines();
 
-            Target.CommitData(linesToSave);
+            var extractDurationMs = sw.ElapsedMilliseconds;
+            var lineCount = Target.CommitData(linesToSave);
 
-            Trace.WriteLine(string.Format("{0} finished.", Source.FilenameWithExtension));
+            sw.Stop();
+
+            var commitDurationMs = sw.ElapsedMilliseconds - extractDurationMs;
+
+            OnExtractComplete(_fileLinesRead, _linesExtracted, lineCount, extractDurationMs, commitDurationMs,
+                sw.ElapsedMilliseconds);
         }
+
+        private long _fileLinesRead;
+        private long _linesExtracted;
 
         private IEnumerable<object[]> EnumerateSourceLines()
         {
             var enumerator = Source.EnumerateFileLines();
             while (enumerator.MoveNext())
             {
+                _fileLinesRead++;
+
                 var line = enumerator.Current;
                 var rawLineValues = SplitLineFunc(line);
 
                 var parsedLineValues = ParseStringValues(rawLineValues);
                 if (!parsedLineValues.IsNullOrEmpty())
                 {
+                    _linesExtracted++;
                     yield return parsedLineValues;
                 }
             }

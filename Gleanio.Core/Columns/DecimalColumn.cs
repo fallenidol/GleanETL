@@ -6,7 +6,7 @@ namespace Gleanio.Core.Columns
     {
         #region Constructors
 
-        public DecimalColumn(string columnName)
+        public DecimalColumn(string columnName = null)
             : base(columnName)
         {
         }

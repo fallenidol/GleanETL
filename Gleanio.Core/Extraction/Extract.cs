@@ -1,5 +1,6 @@
 ﻿using System;
 using Gleanio.Core.Columns;
+using Gleanio.Core.EventArgs;
 using Gleanio.Core.Source;
 using Gleanio.Core.Target;
 
@@ -17,9 +18,39 @@ namespace Gleanio.Core.Extraction
 
             Source = source;
             Target = target;
+
+            Columns.ForEach(column =>
+            {
+                column.ParseError -= OnDataParseError;
+                column.ParseError += OnDataParseError;
+            });
         }
 
         #endregion Constructors
+
+        public event EventHandler<ParseErrorEventArgs> DataParseError;
+        public event EventHandler<ExtractCompleteArgs> ExtractComplete;
+
+        private void OnDataParseError(object sender, ParseErrorEventArgs parseErrorEventArgs)
+        {
+            var handler = DataParseError;
+            if (handler != null)
+            {
+                handler(this, parseErrorEventArgs);
+            }
+        }
+
+        protected void OnExtractComplete(long linesExtractedFromSource, long linesPassedToTarget,
+            long linesCommittedToTarget, long extractDurationMs, long commitDurationMs, long durationInMs)
+        {
+            var handler = ExtractComplete;
+            if (handler != null)
+            {
+                handler(this,
+                    new ExtractCompleteArgs(linesExtractedFromSource, linesPassedToTarget, linesCommittedToTarget,
+                        extractDurationMs, commitDurationMs, durationInMs));
+            }
+        }
 
         #region Properties
 
@@ -32,10 +63,6 @@ namespace Gleanio.Core.Extraction
         #endregion Properties
 
         #region Methods
-
-        public abstract void AfterExtract();
-
-        public abstract void BeforeExtract();
 
         public abstract void ExtractToTarget();
 
@@ -51,13 +78,34 @@ namespace Gleanio.Core.Extraction
                     {
                         var colType = column.GetType();
 
-                        if (colType == typeof (StringNoWhitespaceColumn))
+                        if (colType == typeof (IgnoredColumn))
                         {
-                            parsedLineValues[i] = ((StringNoWhitespaceColumn) column).ParseValue(rawLineValues[i]);
+                        }
+                        else if (colType == typeof (StringNoWhitespaceColumn))
+                        {
+                            var scol = (StringNoWhitespaceColumn) column;
+                            var value = scol.ParseValue(rawLineValues[i]);
+
+                            parsedLineValues[i] = value;
+
+                            var len = value.Length;
+                            if (scol.DetectedMaxLength < len)
+                            {
+                                scol.DetectedMaxLength = len;
+                            }
                         }
                         else if (colType == typeof (StringColumn))
                         {
-                            parsedLineValues[i] = ((StringColumn) column).ParseValue(rawLineValues[i]);
+                            var scol = (StringColumn) column;
+                            var value = scol.ParseValue(rawLineValues[i]);
+
+                            parsedLineValues[i] = value;
+
+                            var len = value.Length;
+                            if (scol.DetectedMaxLength < len)
+                            {
+                                scol.DetectedMaxLength = len;
+                            }
                         }
                         else if (colType == typeof (IntColumn))
                         {
@@ -92,47 +140,5 @@ namespace Gleanio.Core.Extraction
         }
 
         #endregion Methods
-
-        #region Other
-
-        //public event ProgressChangedEventHandler ProgressChanged;
-        //public event EventHandler<ExtractCompleteEventArgs> ExtractComplete;
-        //protected void OnExtractComplete()
-        //{
-        //    if (ExtractComplete != null)
-        //    {
-        //        var args = new ExtractCompleteEventArgs();
-        //        ExtractComplete.Invoke(this, args);
-        //    }
-        //}
-        //protected void OnExtractComplete(ExtractCompleteEventArgs args)
-        //{
-        //    if (ExtractComplete != null)
-        //    {
-        //        ExtractComplete.Invoke(this, args);
-        //    }
-        //}
-        //private int _progressPercent = -1;
-        //private int _totalLinesToImport = -1;
-        //protected void IncrementProgress(int lineNumber)
-        //{
-        //    if (_totalLinesToImport == -1)
-        //    {
-        //        _totalLinesToImport = Source.LinesToImport.Count();
-        //    }
-        //    int percent = (lineNumber * 100) / _totalLinesToImport;
-        //    OnProgressChanged(percent);
-        //}
-        //protected void OnProgressChanged(int percent)
-        //{
-        //    if (ProgressChanged != null && _progressPercent != percent)
-        //    {
-        //        _progressPercent = percent;
-        //        var args = new ProgressChangedEventArgs(percent, null);
-        //        ProgressChanged.Invoke(this, args);
-        //    }
-        //}
-
-        #endregion Other
     }
 }

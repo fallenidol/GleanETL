@@ -9,7 +9,7 @@ namespace Gleanio.Core.Columns
 
         protected BaseColumn(string columnName, Type dataType)
         {
-            if (!dataType.IsClass && Nullable.GetUnderlyingType(dataType) == null)
+            if (dataType != null && !dataType.IsClass && Nullable.GetUnderlyingType(dataType) == null)
             {
                 throw new ArgumentException(
                     string.Format("[{0}] is not a nullable type. Please supply a nullable type, such as [DateTime?]",

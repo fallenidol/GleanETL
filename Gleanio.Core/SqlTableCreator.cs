@@ -125,8 +125,8 @@ namespace Gleanio.Core
             {
                 case "System.String":
                     var colSize = columnSize == 0 ? 255 : columnSize;
-                    return "VARCHAR(" + ((colSize == -1) ? "255" : (colSize > 8000) ? "MAX" : colSize.ToString()) + ")";
-
+                    //return "NVARCHAR(" + ((colSize == -1) ? "255" : (colSize > 8000) ? "MAX" : colSize.ToString()) + ")";
+                    return "NVARCHAR(MAX)";
                 case "System.Decimal":
                     if (numericScale > 0)
                         return "Decimal(17," + numericScale + ")";

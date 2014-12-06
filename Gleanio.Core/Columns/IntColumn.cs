@@ -6,7 +6,7 @@ namespace Gleanio.Core.Columns
     {
         #region Constructors
 
-        public IntColumn(string columnName)
+        public IntColumn(string columnName = null)
             : base(columnName)
         {
         }

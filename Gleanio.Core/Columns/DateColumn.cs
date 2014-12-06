@@ -8,7 +8,8 @@ namespace Gleanio.Core.Columns
     {
         #region Constructors
 
-        public DateColumn(string columnName, string[] inputFormats = null, string outputFormat = DefaultOutputFormat,
+        public DateColumn(string columnName = null, string[] inputFormats = null,
+            string outputFormat = DefaultOutputFormat,
             DateTime? invalidDateValue = null)
             : base(columnName)
         {
@@ -68,15 +69,15 @@ namespace Gleanio.Core.Columns
             return formats;
         }
 
-        public override DateTime? ParseValue(string value)
-        {
-            var parsedValue = PreParseValue(value);
+        private static DateColumn _dc = new DateColumn();
 
+        public static DateTime? ParseValue(string value, string[] validFormats, DateTime? invalidDateValue = null)
+        {
             DateTime? result = null;
 
             if (value != null)
             {
-                var trimmedValue = parsedValue.TrimAndRemoveConsecutiveWhitespace();
+                var trimmedValue = value.TrimAndRemoveConsecutiveWhitespace();
 
                 if (trimmedValue.Length > 0)
                 {
@@ -101,20 +102,35 @@ namespace Gleanio.Core.Columns
                         ;
 
                     DateTime temp;
-                    if (DateTime.TryParseExact(trimmedValue, _inputFormats, CultureInfo.InvariantCulture,
+                    if (DateTime.TryParseExact(trimmedValue, validFormats, CultureInfo.InvariantCulture,
                         DateTimeStyles.AssumeLocal, out temp))
                     {
                         result = temp;
                     }
                     else
                     {
-                        OnParseError(value);
-                        result = _invalidDateValue;
+                        throw new ParseException(value, typeof (DateTime));
                     }
                 }
             }
 
             return result;
+        }
+
+        public override DateTime? ParseValue(string value)
+        {
+            try
+            {
+                var parsedValue = PreParseValue(value);
+
+                return ParseValue(parsedValue, _inputFormats);
+            }
+            catch (ParseException pe)
+            {
+                OnParseError(pe.ValueBeingParsed, pe.Message);
+
+                return _invalidDateValue;
+            }
         }
 
         public string ParseValueAndFormat(string value)
@@ -131,5 +147,18 @@ namespace Gleanio.Core.Columns
         }
 
         #endregion Methods
+    }
+
+    public class ParseException : Exception
+    {
+        public ParseException(string valueBeingParsed, Type targetType)
+            : base(string.Format("'{0}' could not be parsed to [{1}].", valueBeingParsed, targetType.Name))
+        {
+            TargetType = targetType;
+            ValueBeingParsed = valueBeingParsed;
+        }
+
+        public string ValueBeingParsed { get; private set; }
+        public Type TargetType { get; private set; }
     }
 }

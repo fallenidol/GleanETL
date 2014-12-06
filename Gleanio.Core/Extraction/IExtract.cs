@@ -1,12 +1,14 @@
-﻿namespace Gleanio.Core.Extraction
+﻿using System;
+using Gleanio.Core.EventArgs;
+
+namespace Gleanio.Core.Extraction
 {
     public interface IExtract
     {
         #region Methods
 
-        void AfterExtract();
-
-        void BeforeExtract();
+        event EventHandler<ParseErrorEventArgs> DataParseError;
+        event EventHandler<ExtractCompleteArgs> ExtractComplete;
 
         void ExtractToTarget();
 

@@ -21,9 +21,11 @@ namespace Gleanio.Core.Extraction
                 record =>
                 {
                     var firstOrDefault = record.FileLines.FirstOrDefault();
-                    return firstOrDefault != null ? (record.FileLines.Any()
-                                  ? new[] {new TextFileLine(firstOrDefault.OriginalLine)}
-                                  : null) : null;
+                    return firstOrDefault != null
+                        ? (record.FileLines.Any()
+                            ? new[] {TextFileRecordLine.New(firstOrDefault.OriginalLine, Constants.RecordLineDelimiter)}
+                            : null)
+                        : null;
                 };
         }
 
@@ -33,21 +35,14 @@ namespace Gleanio.Core.Extraction
 
         public Func<TextFileLine, TextFileLine, bool> IsFirstLineOfRecord { get; set; }
 
-        public Func<TextFileRecord, IEnumerable<TextFileLine>> ParseRecord { get; set; }
+        public Func<TextFileRecord, IEnumerable<TextFileRecordLine>> ParseRecord { get; set; }
 
         #endregion Properties
 
         #region Methods
 
-        public override void AfterExtract()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void BeforeExtract()
-        {
-            throw new NotImplementedException();
-        }
+        private long _fileLinesRead;
+        private long _linesExtracted;
 
         public IEnumerable<TextFileRecord> EnumerateRecords()
         {
@@ -57,6 +52,8 @@ namespace Gleanio.Core.Extraction
             var enumerator = Source.EnumerateFileLines();
             while (enumerator.MoveNext())
             {
+                _fileLinesRead++;
+
                 var line = enumerator.Current;
 
                 if (IsFirstLineOfRecord(line, previousLine))
@@ -82,6 +79,8 @@ namespace Gleanio.Core.Extraction
 
         public override void ExtractToTarget()
         {
+            var sw = Stopwatch.StartNew();
+
             var records = EnumerateRecords();
 
             var lines = FlattenRecordsIntoLines(records);
@@ -90,23 +89,28 @@ namespace Gleanio.Core.Extraction
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var line in lines)
             {
-                var rawLineValues = line.OriginalLine.Split(new[] {line.Delimiter}, StringSplitOptions.None);
+                var rawLineValues = line.Text.Split(new[] {line.Delimiter}, StringSplitOptions.None);
                 var parsedLineValues = ParseStringValues(rawLineValues);
 
                 if (parsedLineValues != null && parsedLineValues.Length > 0)
                 {
+                    _linesExtracted++;
                     targetFileLines.Add(parsedLineValues);
                 }
             }
 
-            Target.CommitData(targetFileLines);
+            var extractDurationMs = sw.ElapsedMilliseconds;
 
-            Trace.WriteLine(string.Format("{0} finished.", Source.FilenameWithExtension));
+            var lineCount = Target.CommitData(targetFileLines);
 
-            //Debug.WriteLine("*** " + Source.FilenameWithExtension.ToUpperInvariant() + " FINISHED. " + recordNumber + " RECORDS SAVED!!");
+            sw.Stop();
+            var commitDurationMs = sw.ElapsedMilliseconds - extractDurationMs;
+
+            OnExtractComplete(_fileLinesRead, _linesExtracted, lineCount, extractDurationMs, commitDurationMs,
+                sw.ElapsedMilliseconds);
         }
 
-        public IEnumerable<TextFileLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
+        public IEnumerable<TextFileRecordLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
         {
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var record in records)
@@ -118,7 +122,10 @@ namespace Gleanio.Core.Extraction
                     {
                         foreach (var line in recordLines)
                         {
-                            yield return line;
+                            if (line != null)
+                            {
+                                yield return line;
+                            }
                         }
                     }
                 }

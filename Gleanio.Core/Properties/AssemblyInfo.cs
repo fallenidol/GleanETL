@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Gleanio")]
 [assembly:
     AssemblyDescription(
-        "Aims to provide a simple framework with which to extract data from text files, particularly if they are in non-standard formats."
+        "Aims to be a simple framework with which to extract data from text files, particularly if they are in non-standard formats."
         )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Paul Mcilreavy")]

@@ -7,9 +7,17 @@ namespace Gleanio.Core.Target
     {
         #region Methods
 
-        public override void CommitData(IEnumerable<object[]> dataRows)
+        public override long CommitData(IEnumerable<object[]> dataRows)
         {
-            dataRows.ForEach((i, o) => Trace.WriteLine(string.Format("Row {0}: {1}", i + 1, string.Join(", ", o))));
+            long lineCount = 0;
+
+            dataRows.ForEach((i, o) =>
+            {
+                Trace.WriteLine(string.Format("Row {0}: {1}", i + 1, string.Join(", ", o)));
+                lineCount++;
+            });
+
+            return lineCount;
         }
 
         #endregion Methods

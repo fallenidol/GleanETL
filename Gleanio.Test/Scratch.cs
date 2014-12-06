@@ -1,34 +1,37 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
+using System.IO;
+using Gleanio.Core;
+using Gleanio.Core.Columns;
+using Gleanio.Core.Extraction;
+using Gleanio.Core.Source;
+using Gleanio.Core.Target;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Gleanio.Test
 {
-    using Gleanio.Core;
-    using Gleanio.Core.Columns;
-    using Gleanio.Core.Extraction;
-    using Gleanio.Core.Source;
-    using Gleanio.Core.Target;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System;
-
     [TestClass]
     public class Scratch
     {
+        private const string LocalDbConnectionString =
+            @"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;";
+
         #region Methods
 
         [TestInitialize]
         public void Init()
         {
-            Trace.WriteLine("Init");
+            var csb = new SqlConnectionStringBuilder(LocalDbConnectionString);
+            csb.InitialCatalog = "master";
 
-            using (var c = new SqlConnection(@"Server=(localdb)\v11.0;Integrated Security=true;"))
+            using (var c = new SqlConnection(csb.ConnectionString))
             {
                 using (var cmd = c.CreateCommand())
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.CommandText =
-                    @"
+                        @"
 IF NOT EXISTS (
 		SELECT 1
 		FROM sys.databases
@@ -39,7 +42,6 @@ IF NOT EXISTS (
 
                     c.Open();
                     cmd.ExecuteNonQuery();
-
                 }
             }
         }
@@ -47,33 +49,41 @@ IF NOT EXISTS (
         [TestCleanup]
         public void CleanUp()
         {
-            Trace.WriteLine("Clean Up");
         }
 
         [TestMethod]
         public void ExtractWindowsUpdateLogFileToDatabase()
         {
-            var columns = new BaseColumn[]
+            const string sourceFile = @"C:\Windows\WindowsUpdate.log";
+
+            if (File.Exists(sourceFile))
             {
-                new DateColumn("Timestamp", new []{"yyyy-MM-dd HH:mm:ss:fff"}, "yyyy-MM-dd HH:mm:ss.fff"), 
-                new IntColumn("Unknown1"), 
-                new StringColumn("Unknown2"), 
-                new StringColumn("Message", 250)
-            };
+                var columns = new BaseColumn[]
+                {
+                    new DateColumn("Timestamp", new[] {"yyyy-MM-dd HH:mm:ss:fff"}, "yyyy-MM-dd HH:mm:ss.fff"),
+                    new IgnoredColumn(),
+                    new IgnoredColumn(),
+                    new StringColumn("Message")
+                };
 
-            var source = new TextFile(@"C:\Windows\WindowsUpdate.log")
+                var source = new TextFile(sourceFile)
+                {
+                    ExtractLineIf = line => line.Length > 0
+                };
+
+                var target = new DatabaseTableTarget(LocalDbConnectionString, "WindowsUpdateLog");
+
+                var extraction = new ExtractLinesToDatabase(columns, source, target)
+                {
+                    SplitLineFunc = line => line.Split(0, 23, 28, 33)
+                };
+
+                extraction.ExtractToTarget();
+            }
+            else
             {
-                TakeLineFunc = line => line.Length > 0
-            };
-
-            var target = new DatabaseTableTarget(@"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;", "WindowsUpdateLog");
-
-            var extraction = new ExtractLinesToDatabase(columns, source, target)
-            {
-                SplitLineFunc = line => line.Split(0, 23, 28, 33)
-            };
-
-            extraction.ExtractToTarget();
+                Assert.Inconclusive("File could not be found: {0}.", sourceFile);
+            }
         }
 
         [TestMethod]
@@ -87,22 +97,28 @@ IF NOT EXISTS (
 
             var source = new TextFile(@"C:\Windows\System32\drivers\etc\HOSTS")
             {
-                TakeLineFunc = line =>
+                ExtractLineIf = line =>
                     line.Length > 0 &&
                     (!line.Contains("#") || line.IndexOf('#') > 0)
             };
 
-            var target = new DatabaseTableTarget(@"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=Gleanio;", "Hosts");
+            var target =
+                new DatabaseTableTarget(LocalDbConnectionString,
+                    "Hosts");
 
             var extraction = new ExtractLinesToDatabase(columns, source, target)
             {
-                SplitLineFunc = line => line.OriginalLine.TrimAndRemoveConsecutiveWhitespace().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries).ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
+                SplitLineFunc =
+                    line =>
+                        line.OriginalLine.TrimAndRemoveConsecutiveWhitespace()
+                            .Split(new[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries)
+                            .ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
             };
 
             extraction.ExtractToTarget();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ExtractHostsFileToTraceOutput()
         {
             var columns = new BaseColumn[]
@@ -113,7 +129,7 @@ IF NOT EXISTS (
 
             var source = new TextFile(@"C:\Windows\System32\drivers\etc\HOSTS")
             {
-                TakeLineFunc = line =>
+                ExtractLineIf = line =>
                     line.Length > 0 &&
                     (!line.Contains("#") || line.IndexOf('#') > 0)
             };
@@ -122,7 +138,11 @@ IF NOT EXISTS (
 
             var extraction = new ExtractLinesToTrace(columns, source, target)
             {
-                SplitLineFunc = line => line.OriginalLine.TrimAndRemoveConsecutiveWhitespace().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries).ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
+                SplitLineFunc =
+                    line =>
+                        line.OriginalLine.TrimAndRemoveConsecutiveWhitespace()
+                            .Split(new[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries)
+                            .ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
             };
 
             extraction.ExtractToTarget();

@@ -45,7 +45,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventArgs\ExtractCompleteEventArgs.cs" />
+    <Compile Include="Columns\IgnoredColumn.cs" />
+    <Compile Include="EventArgs\ExtractCompleteArgs.cs" />
     <Compile Include="EventArgs\ParseErrorEventArgs.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Enumerations\StringCapitalisation.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Extraction\IExtractPackage.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extraction\LineExtraction.cs" />
+    <Compile Include="Extraction\TextFileRecordLine.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="SqlTableCreator.cs" />
     <Compile Include="Target\BaseExtractTarget.cs" />
@@ -105,14 +107,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>md "$(ProjectDir)bin\$(ConfigurationName)"
-md "$(ProjectDir)obj\$(ConfigurationName)"
-rd /q /s "$(SolutionDir)TestResults"
-rd /q /s "$(ProjectDir)bin"
-rd /q /s "$(ProjectDir)obj"
-md "$(ProjectDir)bin\$(ConfigurationName)"
-md "$(ProjectDir)obj\$(ConfigurationName)"
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

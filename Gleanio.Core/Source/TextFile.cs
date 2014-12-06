@@ -5,6 +5,7 @@ using System.IO;
 namespace Gleanio.Core.Source
 {
     /// <summary>
+    ///     A source text file.
     /// </summary>
     public class TextFile
     {
@@ -12,7 +13,7 @@ namespace Gleanio.Core.Source
 
         public TextFile(string pathToFile)
         {
-            TakeLineFunc = line => true;
+            ExtractLineIf = line => true;
 
             _pathToFile = pathToFile.Trim();
 
@@ -42,7 +43,7 @@ namespace Gleanio.Core.Source
             {
                 foreach (var line in File.ReadLines(_pathToFile))
                 {
-                    if (TakeLineFunc.Invoke(line))
+                    if (ExtractLineIf.Invoke(line))
                     {
                         yield return new TextFileLine(line);
                     }
@@ -79,7 +80,7 @@ namespace Gleanio.Core.Source
             get { return _filenameWithoutExtension; }
         }
 
-        public Func<string, bool> TakeLineFunc { get; set; }
+        public Func<string, bool> ExtractLineIf { get; set; }
 
         #endregion Properties
     }

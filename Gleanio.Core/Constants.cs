@@ -6,6 +6,7 @@
 
         public static string DoubleSpace = "  ";
         public static string SingleSpace = " ";
+        public static string RecordLineDelimiter = "~";
 
         #endregion Fields
     }

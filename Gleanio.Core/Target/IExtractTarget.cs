@@ -12,13 +12,11 @@ namespace Gleanio.Core.Target
 
         #region Methods
 
-        void CommitData(IEnumerable<object[]> dataRows);
+        long CommitData(IEnumerable<object[]> dataRows);
 
         #endregion Methods
 
         #region Other
-
-        //BaseColumn[] Columns { get; set; }
 
         #endregion Other
     }
