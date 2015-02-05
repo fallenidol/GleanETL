@@ -138,8 +138,7 @@ IF NOT EXISTS (
 
             var extraction = new ExtractLinesToTrace(columns, source, target)
             {
-                SplitLineFunc =
-                    line =>
+                SplitLineFunc = line =>
                         line.OriginalLine.TrimAndRemoveConsecutiveWhitespace()
                             .Split(new[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries)
                             .ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)

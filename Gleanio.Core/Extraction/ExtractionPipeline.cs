@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,7 +17,10 @@ namespace Gleanio.Core.Extraction
 
         public void AddExtract(IExtract extract)
         {
-            _extracts.Add(extract);
+            if (extract != null)
+            {
+                _extracts.Add(extract);
+            }
         }
 
         public void Clear()
@@ -28,6 +32,7 @@ namespace Gleanio.Core.Extraction
         {
             Parallel.ForEach(_extracts, extract =>
             {
+                Trace.WriteLine("*** STARTING " + extract.ToString());
                 extract.ExtractToTarget();
 
                 extract = null;
@@ -38,6 +43,7 @@ namespace Gleanio.Core.Extraction
         {
             for (var i = 0; i < _extracts.Count(); i++)
             {
+                Trace.WriteLine("*** STARTING " + _extracts[i].ToString());
                 _extracts[i].ExtractToTarget();
                 _extracts[i] = null;
             }

@@ -10,16 +10,22 @@ namespace Gleanio.Core.Target
 {
     public class DatabaseTableTarget : BaseExtractTarget
     {
+        public override string ToString()
+        {
+            var sb = new SqlConnectionStringBuilder(this._connectionString);
+            return string.Format("{0}.{1}.{2}", sb.DataSource, sb.InitialCatalog, _table);
+        }
+
         #region Constructors
 
         public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo",
-            bool deleteTargetIfExists = true)
+            bool deleteTargetIfExists = false)
             : base(deleteTargetIfExists)
         {
             _table = targetTable.Trim();
             _schema = targetSchema.Trim();
 
-            var csb = new SqlConnectionStringBuilder(connectionString) {PersistSecurityInfo = true};
+            var csb = new SqlConnectionStringBuilder(connectionString) { PersistSecurityInfo = true };
 
             _connectionString = csb.ConnectionString;
         }
@@ -64,7 +70,7 @@ namespace Gleanio.Core.Target
                 {
                     var ordinal = 0;
 
-                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof (long))
+                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof(long))
                     {
                         Unique = true,
                         AutoIncrementSeed = 1,
@@ -72,10 +78,19 @@ namespace Gleanio.Core.Target
                         AutoIncrement = true,
                         AllowDBNull = false
                     };
+
+                    if (!DeleteIfExists)
+                    {
+                        using (var cmd = new SqlCommand(string.Format("IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') SELECT Coalesce(MAX(BULK_IMPORT_ID),0)+1 FROM [{0}].[{1}]; ELSE SELECT 1;", _schema, _table), c))
+                        {
+                            rowId.AutoIncrementSeed = Convert.ToInt64(cmd.ExecuteScalar());
+                        }
+                    }
+
                     data.Columns.Add(rowId);
                     rowId.SetOrdinal(ordinal);
 
-                    data.PrimaryKey = new[] {rowId};
+                    data.PrimaryKey = new[] { rowId };
 
                     foreach (var col in Columns)
                     {
@@ -109,18 +124,42 @@ namespace Gleanio.Core.Target
                             AddRow(row, data, batchSize, c, true);
                             lineCount++;
                         }
+                        else
+                        {
+                            CreateSchema(data, c);
+                        }
                     }
 
-                    var sqlBuilder = new StringBuilder();
-                    foreach (var column in Columns.OfType<StringColumn>())
+                    if (lineCount > 0)
                     {
-                        sqlBuilder.AppendLine(string.Format(
-                            "ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table,
-                            column.ColumnName, column.DetectedMaxLength));
-                    }
-                    using (var cmd = new SqlCommand(sqlBuilder.ToString(), c))
-                    {
-                        cmd.ExecuteNonQuery();
+                        var sqlBuilder = new StringBuilder();
+                        foreach (var column in (Columns.OfType<BaseColumn>().Where(bc => bc is StringColumn || bc is DerivedStringColumn)))
+                        {
+                            int length = 255;
+                            if (column is StringColumn)
+                            {
+                                var sc = column as StringColumn;
+                                length = sc.DetectedMaxLength <= 0 ? sc.MaxLength <= 0 ? 255 : sc.MaxLength : sc.DetectedMaxLength;
+                            }
+                            else if (column is DerivedStringColumn)
+                            {
+                                var sc = column as DerivedStringColumn;
+                                length = sc.DetectedMaxLength <= 0 ? 255 : sc.DetectedMaxLength;
+                            }
+
+                            if (DeleteIfExists)
+                            {
+                                sqlBuilder.AppendLine(string.Format("ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table, column.ColumnName, length));
+                            }
+                            else
+                            {
+                                sqlBuilder.AppendLine(string.Format("IF ((SELECT MAX(LEN([{2}])) FROM [{0}].[{1}]) < {3}) ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table, column.ColumnName, length));
+                            }
+                        }
+                        using (var cmd = new SqlCommand(sqlBuilder.ToString(), c))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
             }
@@ -132,7 +171,7 @@ namespace Gleanio.Core.Target
         {
             var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
 
-            var values = (new object[] {null}).Union(valuesWithoutIgnoredColumns);
+            var values = (new object[] { null }).Concat(valuesWithoutIgnoredColumns);
 
             if (data.Rows.Count <= batchSize)
             {
@@ -143,22 +182,7 @@ namespace Gleanio.Core.Target
             {
                 if (_firstTime)
                 {
-                    var schemaSql = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema +
-                                    "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
-                    using (var cmd = new SqlCommand(schemaSql, c))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
-                    var dropCreateSql =
-                        "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema +
-                        "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " +
-                        createTableSql + "; ";
-                    using (var cmd = new SqlCommand(dropCreateSql, c))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
+                    CreateSchema(data, c);
 
                     _firstTime = false;
                 }
@@ -175,6 +199,28 @@ namespace Gleanio.Core.Target
             }
         }
 
+        private void CreateSchema(DataTable data, SqlConnection c)
+        {
+            var schemaSql = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema +
+                            "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
+            using (var cmd = new SqlCommand(schemaSql, c))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
+            var sql = createTableSql + "; ";
+            if (DeleteIfExists)
+            {
+                sql = "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema +
+                      "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " + sql;
+            }
+            using (var cmd = new SqlCommand(sql, c))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         private DataColumn GetDataColumn(BaseColumn col)
         {
             var dc = new DataColumn(col.ColumnName)
@@ -186,29 +232,33 @@ namespace Gleanio.Core.Target
 
             var colType = col.GetType();
 
-            if (colType == typeof (StringNoWhitespaceColumn))
+            if (colType == typeof(DerivedStringColumn))
             {
-                dc.DataType = typeof (string);
+                dc.DataType = typeof(string);
             }
-            else if (colType == typeof (StringColumn))
+            else if (colType == typeof(StringNoWhitespaceColumn))
             {
-                dc.DataType = typeof (string);
+                dc.DataType = typeof(string);
             }
-            else if (colType == typeof (IntColumn))
+            else if (colType == typeof(StringColumn))
             {
-                dc.DataType = typeof (int);
+                dc.DataType = typeof(string);
             }
-            else if (colType == typeof (DecimalColumn))
+            else if (colType == typeof(IntColumn))
             {
-                dc.DataType = typeof (decimal);
+                dc.DataType = typeof(int);
             }
-            else if (colType == typeof (MoneyColumn))
+            else if (colType == typeof(DecimalColumn))
             {
-                dc.DataType = typeof (decimal);
+                dc.DataType = typeof(decimal);
             }
-            else if (colType == typeof (DateColumn))
+            else if (colType == typeof(MoneyColumn))
             {
-                dc.DataType = typeof (DateTime);
+                dc.DataType = typeof(decimal);
+            }
+            else if (colType == typeof(DateColumn))
+            {
+                dc.DataType = typeof(DateTime);
                 dc.DateTimeMode = DataSetDateTime.Local;
             }
 

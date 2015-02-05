@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using Gleanio.Core.Columns;
 using Gleanio.Core.EventArgs;
 using Gleanio.Core.Source;
@@ -9,6 +12,11 @@ namespace Gleanio.Core.Extraction
     public abstract class Extract<TExtractTarget> : IExtract
         where TExtractTarget : BaseExtractTarget
     {
+        public override string ToString()
+        {
+            return string.Format("{0} -> {1}", Source.FileInfo.Directory.Name + "/" + Source.FileInfo.Name, Target);
+        }
+
         #region Constructors
 
         protected Extract(BaseColumn[] columns, TextFile source, TExtractTarget target)
@@ -72,56 +80,94 @@ namespace Gleanio.Core.Extraction
             {
                 var parsedLineValues = new object[Columns.Length];
 
+                string[] rawValuesPlusDerived = null;
+
+
+                var ic = Columns.Where(x => x.GetType().BaseType.Name.StartsWith("DerivedColumn"));
+                //if (ic.Any())
+                //{
+                    var l = new List<string>(rawLineValues);
+                    var iic = ic.Select(column => Array.IndexOf(Columns, column)).ToArray();
+
+                    for (int i = 0; i < iic.Length; i++)
+                    {
+                        if (iic[i] > l.Count)
+                        {
+                            l.Add(null);
+                        }
+                        else
+                        {
+                            l.Insert(Math.Max(0, iic[i]), null);
+                        }
+                    }
+
+                    rawValuesPlusDerived = l.ToArray();
+                //}
+
+
+
                 Columns.ForEach((i, column) =>
                 {
-                    if (i < rawLineValues.Length)
+                    if (rawValuesPlusDerived != null && i < rawValuesPlusDerived.Length)
                     {
                         var colType = column.GetType();
 
-                        if (colType == typeof (IgnoredColumn))
+                        if (colType == typeof(IgnoredColumn))
                         {
                         }
-                        else if (colType == typeof (StringNoWhitespaceColumn))
+                        else if (colType == typeof(DerivedStringColumn))
                         {
-                            var scol = (StringNoWhitespaceColumn) column;
-                            var value = scol.ParseValue(rawLineValues[i]);
+                            var col = ((DerivedStringColumn)column);
+                            var value = col.ParseValue(col.DeriveValue(parsedLineValues));
+                            parsedLineValues[i] = value;
+
+                            var len = value == null ? 0 : value.Length;
+                            if (col.DetectedMaxLength < len)
+                            {
+                                col.DetectedMaxLength = len;
+                            }
+                        }
+                        else if (colType == typeof(StringNoWhitespaceColumn))
+                        {
+                            var scol = (StringNoWhitespaceColumn)column;
+                            var value = scol.ParseValue(rawValuesPlusDerived[i]);
 
                             parsedLineValues[i] = value;
 
-                            var len = value.Length;
+                            var len = value == null ? 0 : value.Length;
                             if (scol.DetectedMaxLength < len)
                             {
                                 scol.DetectedMaxLength = len;
                             }
                         }
-                        else if (colType == typeof (StringColumn))
+                        else if (colType == typeof(StringColumn))
                         {
-                            var scol = (StringColumn) column;
-                            var value = scol.ParseValue(rawLineValues[i]);
+                            var scol = (StringColumn)column;
+                            var value = scol.ParseValue(rawValuesPlusDerived[i]);
 
                             parsedLineValues[i] = value;
 
-                            var len = value.Length;
+                            var len = value == null ? 0 : value.Length;
                             if (scol.DetectedMaxLength < len)
                             {
                                 scol.DetectedMaxLength = len;
                             }
                         }
-                        else if (colType == typeof (IntColumn))
+                        else if (colType == typeof(IntColumn))
                         {
-                            parsedLineValues[i] = ((IntColumn) column).ParseValue(rawLineValues[i]);
+                            parsedLineValues[i] = ((IntColumn)column).ParseValue(rawValuesPlusDerived[i]);
                         }
-                        else if (colType == typeof (DecimalColumn))
+                        else if (colType == typeof(DecimalColumn))
                         {
-                            parsedLineValues[i] = ((DecimalColumn) column).ParseValue(rawLineValues[i]);
+                            parsedLineValues[i] = ((DecimalColumn)column).ParseValue(rawValuesPlusDerived[i]);
                         }
-                        else if (colType == typeof (MoneyColumn))
+                        else if (colType == typeof(MoneyColumn))
                         {
-                            parsedLineValues[i] = ((MoneyColumn) column).ParseValue(rawLineValues[i]);
+                            parsedLineValues[i] = ((MoneyColumn)column).ParseValue(rawValuesPlusDerived[i]);
                         }
-                        else if (colType == typeof (DateColumn))
+                        else if (colType == typeof(DateColumn))
                         {
-                            parsedLineValues[i] = ((DateColumn) column).ParseValueAndFormat(rawLineValues[i]);
+                            parsedLineValues[i] = ((DateColumn)column).ParseValueAndFormat(rawValuesPlusDerived[i]);
                         }
                         else
                         {

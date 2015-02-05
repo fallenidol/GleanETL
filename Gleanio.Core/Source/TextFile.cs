@@ -13,24 +13,27 @@ namespace Gleanio.Core.Source
 
         public TextFile(string pathToFile)
         {
-            ExtractLineIf = line => true;
+            if (pathToFile != null)
+            {
+                ExtractLineIf = line => true;
 
-            _pathToFile = pathToFile.Trim();
+                _pathToFile = pathToFile.Trim();
 
-            var lastBackslashIndex = pathToFile.LastIndexOf('\\') + 1;
-            var filenameWithExtenstion = pathToFile.Substring(lastBackslashIndex).Trim();
+                var lastBackslashIndex = pathToFile.LastIndexOf('\\') + 1;
+                var filenameWithExtenstion = pathToFile.Substring(lastBackslashIndex).Trim();
 
-            var lastPeriodIndex = filenameWithExtenstion.LastIndexOf('.');
-            var filenameWithoutExtenstion = lastPeriodIndex < 0
-                ? filenameWithExtenstion.Substring(0).Trim()
-                : filenameWithExtenstion.Substring(0, lastPeriodIndex).Trim();
-            var extension = lastPeriodIndex < 0
-                ? string.Empty
-                : filenameWithExtenstion.Substring(lastPeriodIndex).Trim();
+                var lastPeriodIndex = filenameWithExtenstion.LastIndexOf('.');
+                var filenameWithoutExtenstion = lastPeriodIndex < 0
+                    ? filenameWithExtenstion.Substring(0).Trim()
+                    : filenameWithExtenstion.Substring(0, lastPeriodIndex).Trim();
+                var extension = lastPeriodIndex < 0
+                    ? string.Empty
+                    : filenameWithExtenstion.Substring(lastPeriodIndex).Trim();
 
-            _filenameWithoutExtension = filenameWithoutExtenstion;
-            _filenameWithExtension = filenameWithExtenstion;
-            _filenameExtension = extension;
+                _filenameWithoutExtension = filenameWithoutExtenstion;
+                _filenameWithExtension = filenameWithExtenstion;
+                _filenameExtension = extension;
+            }
         }
 
         #endregion Constructors
@@ -64,6 +67,18 @@ namespace Gleanio.Core.Source
         #endregion Fields
 
         #region Properties
+
+        private FileInfo _fileInfo;
+
+        public FileInfo FileInfo
+        {
+            get { return _pathToFile == null ? null :_fileInfo ?? (_fileInfo = new FileInfo(_pathToFile)); }
+        }
+
+        public string FilePath
+        {
+            get { return _pathToFile; }
+        }
 
         public string FilenameExtension
         {

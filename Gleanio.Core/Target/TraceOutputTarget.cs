@@ -13,7 +13,8 @@ namespace Gleanio.Core.Target
 
             dataRows.ForEach((i, o) =>
             {
-                Trace.WriteLine(string.Format("Row {0}: {1}", i + 1, string.Join(", ", o)));
+                //Trace.WriteLine(string.Format("Row {0}: {1}", i + 1, string.Join(", ", o)));
+                Trace.WriteLine(string.Format("{0}", string.Join(", ", o)));
                 lineCount++;
             });
 

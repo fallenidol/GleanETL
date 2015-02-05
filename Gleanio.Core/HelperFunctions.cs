@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Gleanio.Core.Columns;
+using Gleanio.Core.Extraction;
+using Gleanio.Core.Source;
 
 namespace Gleanio.Core
 {
@@ -8,31 +12,31 @@ namespace Gleanio.Core
     {
         #region Methods
 
-        //public static Func<TextFileRecord, IEnumerable<TextFileLine>> CharacterDelimitedSingleLineRecordParser(
-        //    char inputDelimiter)
-        //{
-        //    return record =>
-        //    {
-        //        List<TextFileLine> returnLines = null;
+        public static Func<TextFileRecord, IEnumerable<TextFileRecordLine>> CharacterDelimitedSingleLineRecordParser(
+            char inputDelimiter)
+        {
+            return record =>
+            {
+                List<TextFileRecordLine> returnLines = null;
 
-        //        if (record.FileLines.Count() == 1)
-        //        {
-        //            var line = record.FileLines.FirstOrDefault();
+                if (record.FileLines.Count() == 1)
+                {
+                    var line = record.FileLines.FirstOrDefault();
 
-        //            if (line != null)
-        //            {
-        //                var values = line.OriginalLine.Split(inputDelimiter);
-        //                returnLines = new List<TextFileLine> {new TextFileLine(String.Join(Constants.RecordLineDelimiter, values))};
-        //            }
-        //        }
-        //        else
-        //        {
-        //            throw new InvalidProgramException("There can be only 1!!!");
-        //        }
+                    if (line != null)
+                    {
+                        var values = line.OriginalLine.Split(inputDelimiter);
+                        returnLines = new List<TextFileRecordLine> { TextFileRecordLine.New(String.Join(Constants.RecordLineDelimiter, values), Constants.RecordLineDelimiter) };
+                    }
+                }
+                else
+                {
+                    throw new InvalidProgramException("There can be only 1!!!");
+                }
 
-        //        return returnLines;
-        //    };
-        //}
+                return returnLines;
+            };
+        }
 
         public static Func<string, bool> LineDoesNotStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {

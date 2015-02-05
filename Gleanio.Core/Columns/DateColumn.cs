@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using Gleanio.Core.Enumerations;
 
@@ -71,13 +72,14 @@ namespace Gleanio.Core.Columns
 
         private static DateColumn _dc = new DateColumn();
 
+        [DebuggerHidden]
         public static DateTime? ParseValue(string value, string[] validFormats, DateTime? invalidDateValue = null)
         {
-            DateTime? result = null;
+            DateTime? result = invalidDateValue;
 
             if (value != null)
             {
-                var trimmedValue = value.TrimAndRemoveConsecutiveWhitespace();
+                var trimmedValue = value.RemoveAllWhitespace();
 
                 if (trimmedValue.Length > 0)
                 {
@@ -109,7 +111,7 @@ namespace Gleanio.Core.Columns
                     }
                     else
                     {
-                        throw new ParseException(value, typeof (DateTime));
+                        //throw new ParseException(value, typeof (DateTime));
                     }
                 }
             }
@@ -119,18 +121,18 @@ namespace Gleanio.Core.Columns
 
         public override DateTime? ParseValue(string value)
         {
-            try
-            {
-                var parsedValue = PreParseValue(value);
+            //try
+            //{
+            var parsedValue = PreParseValue(value);
 
-                return ParseValue(parsedValue, _inputFormats);
-            }
-            catch (ParseException pe)
-            {
-                OnParseError(pe.ValueBeingParsed, pe.Message);
+            return ParseValue(parsedValue, _inputFormats);
+            //}
+            //catch (ParseException pe)
+            //{
+            //    OnParseError(pe.ValueBeingParsed, pe.Message);
 
-                return _invalidDateValue;
-            }
+            //    return _invalidDateValue;
+            //}
         }
 
         public string ParseValueAndFormat(string value)

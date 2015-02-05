@@ -21,10 +21,17 @@ namespace Gleanio.Core.Target
         protected object[] ValuesWithoutIgnoredColumns(object[] row)
         {
             var ic = Columns.OfType<IgnoredColumn>();
-            var iic = ic.Select(column => Array.IndexOf(Columns, column));
-            var io = row.Where((o, i) => iic.Contains(i));
-            var valuesWithoutIgnoredColumns = row.Except(io).ToArray();
-            return valuesWithoutIgnoredColumns;
+            if (ic.Any())
+            {
+                var iic = ic.Select(column => Array.IndexOf(Columns, column));
+                var io = row.Where((o, i) => iic.Contains(i));
+                var valuesWithoutIgnoredColumns = row.Except(io).ToArray();
+                return valuesWithoutIgnoredColumns;
+            }
+            else
+            {
+                return row;
+            }
         }
 
         public abstract long CommitData(IEnumerable<object[]> dataRows);

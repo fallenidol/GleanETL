@@ -43,6 +43,8 @@ namespace Gleanio.Core
         {
             var sql = new StringBuilder();
 
+            sql.AppendFormattedLine("IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') ", schema, tableName);
+
             sql.AppendFormattedLine("CREATE TABLE [{0}].[{1}] (", schema, tableName);
 
             foreach (DataColumn column in table.Columns)
