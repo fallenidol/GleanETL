@@ -54,12 +54,6 @@
     <Compile Include="Enumerations\StandardDateFormats.cs" />
     <Compile Include="Columns\StringNoWhitespaceColumn.cs" />
     <Compile Include="Extraction\ExtractionPipeline.cs" />
-    <Compile Include="Extraction\ExtractLinesToDatabase.cs" />
-    <Compile Include="Extraction\ExtractLinesToSeparatedValueFile.cs" />
-    <Compile Include="Extraction\ExtractLinesToTrace.cs" />
-    <Compile Include="Extraction\ExtractRecordsToDatabase.cs" />
-    <Compile Include="Extraction\ExtractRecordsToSeparatedValueFile.cs" />
-    <Compile Include="Extraction\ExtractRecordsToTrace.cs" />
     <Compile Include="Extraction\IExtract.cs" />
     <Compile Include="Extraction\IExtractPackage.cs" />
     <Compile Include="ExtensionMethods.cs" />
@@ -72,11 +66,11 @@
     <Compile Include="Columns\DecimalColumn.cs" />
     <Compile Include="Extraction\Extract.cs" />
     <Compile Include="Extraction\RecordExtraction.cs" />
-    <Compile Include="Source\TextFile.cs" />
+    <Compile Include="Source\TextFileSource.cs" />
     <Compile Include="Columns\BaseColumn.cs" />
     <Compile Include="Target\DatabaseTableTarget.cs" />
     <Compile Include="Target\SeparatedValueFileTarget.cs" />
-    <Compile Include="Source\TextFileLine.cs" />
+    <Compile Include="Source\TextLine.cs" />
     <Compile Include="Target\IExtractTarget.cs" />
     <Compile Include="Columns\IntColumn.cs" />
     <Compile Include="Columns\MoneyColumn.cs" />

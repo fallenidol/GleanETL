@@ -1,7 +1,7 @@
-using System.Globalization;
-
 namespace Gleanio.Core.Columns
 {
+    using System.Globalization;
+
     public class DecimalColumn : BaseColumn<decimal?>
     {
         #region Constructors
@@ -31,7 +31,7 @@ namespace Gleanio.Core.Columns
             }
             else
             {
-                OnParseError(value);
+                OnParseError(value, typeof(decimal));
             }
 
             return result;

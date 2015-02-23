@@ -1,6 +1,5 @@
 namespace Gleanio.Core.Enumerations
 {
-
     #region Enumerations
 
     public enum StringCapitalisation

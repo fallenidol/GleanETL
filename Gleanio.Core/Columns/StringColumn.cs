@@ -1,11 +1,21 @@
-using System;
-using System.Text;
-using Gleanio.Core.Enumerations;
-
 namespace Gleanio.Core.Columns
 {
+    using System;
+    using System.Text;
+
+    using Gleanio.Core.Enumerations;
+
     public class StringColumn : BaseColumn<string>
     {
+        #region Fields
+
+        private readonly bool _encloseInDoubleQuotes;
+        private readonly int _maxLength;
+        private readonly StringCapitalisation _stringCapitalisation;
+        private readonly WhitespaceHandling _whitespaceHandling;
+
+        #endregion Fields
+
         #region Constructors
 
         public StringColumn(string columnName = null, int maxLength = -1, bool encloseInDoubleQuotes = false,
@@ -22,23 +32,17 @@ namespace Gleanio.Core.Columns
 
         #endregion Constructors
 
-        #region Fields
-
-        private readonly bool _encloseInDoubleQuotes;
-        private readonly int _maxLength;
-        private readonly StringCapitalisation _stringCapitalisation;
-        private readonly WhitespaceHandling _whitespaceHandling;
-
-        #endregion Fields
-
         #region Properties
+
+        public int DetectedMaxLength
+        {
+            get; internal set;
+        }
 
         public int MaxLength
         {
             get { return _maxLength; }
         }
-
-        public int DetectedMaxLength { get; internal set; }
 
         public StringCapitalisation StringCapitalisation
         {

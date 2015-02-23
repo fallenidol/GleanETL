@@ -2,7 +2,7 @@
 
 namespace Gleanio.Core.Source
 {
-    public class TextFileLine
+    public class TextLine
     {
         #region Fields
 
@@ -12,7 +12,7 @@ namespace Gleanio.Core.Source
 
         #region Constructors
 
-        public TextFileLine(string originalLineText)
+        public TextLine(string originalLineText)
         {
             _originalLine = originalLineText;
         }

@@ -1,7 +1,7 @@
-using System.Globalization;
-
 namespace Gleanio.Core.Columns
 {
+    using System.Globalization;
+
     public class IntColumn : BaseColumn<int?>
     {
         #region Constructors
@@ -24,14 +24,14 @@ namespace Gleanio.Core.Columns
             int temp;
             if (!string.IsNullOrWhiteSpace(parsedValue) &&
                 int.TryParse(
-                    parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty).Replace("\"", string.Empty),
+                    parsedValue.RemoveAllWhitespace(),
                     NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }
             else
             {
-                OnParseError(value);
+                OnParseError(value, typeof(int));
             }
 
             return result;

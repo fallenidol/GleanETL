@@ -1,8 +1,9 @@
-﻿using System;
-using Gleanio.Core.EventArgs;
-
-namespace Gleanio.Core.Columns
+﻿namespace Gleanio.Core.Columns
 {
+    using System;
+
+    using Gleanio.Core.EventArgs;
+
     public abstract class BaseColumn
     {
         #region Constructors
@@ -31,26 +32,38 @@ namespace Gleanio.Core.Columns
 
         #region Properties
 
-        public string ColumnDisplayName { get; private set; }
+        public string ColumnDisplayName
+        {
+            get; private set;
+        }
 
-        public string ColumnName { get; private set; }
+        public string ColumnName
+        {
+            get; private set;
+        }
 
-        public Type DataType { get; private set; }
+        public Type DataType
+        {
+            get; private set;
+        }
 
-        public Func<string, string> PreParseFunction { get; set; }
+        public Func<string, string> PreParseFunction
+        {
+            get; set;
+        }
 
         #endregion Properties
 
         #region Methods
 
-        protected void OnParseError(string valueBeingParsed, Exception exception)
+        protected void OnParseError(string valueBeingParsed, Type targetType, Exception exception)
         {
-            OnParseError(new ParseErrorEventArgs(valueBeingParsed, exception));
+            OnParseError(new ParseErrorEventArgs(valueBeingParsed, exception, targetType));
         }
 
-        protected void OnParseError(string valueBeingParsed, string message = "The value could not be parsed.")
+        protected void OnParseError(string valueBeingParsed, Type targetType, string message = "The value could not be parsed.")
         {
-            OnParseError(new ParseErrorEventArgs(valueBeingParsed, message));
+            OnParseError(new ParseErrorEventArgs(valueBeingParsed, message, targetType));
         }
 
         protected void OnParseError(ParseErrorEventArgs args)

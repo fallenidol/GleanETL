@@ -19,8 +19,8 @@ namespace Gleanio.Core.Target
         #region Constructors
 
         public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo",
-            bool deleteTargetIfExists = false)
-            : base(deleteTargetIfExists)
+            bool deleteTableIfExists = false)
+            : base(deleteTableIfExists)
         {
             _table = targetTable.Trim();
             _schema = targetSchema.Trim();
@@ -37,6 +37,7 @@ namespace Gleanio.Core.Target
         private readonly string _connectionString;
         private readonly string _schema;
         private readonly string _table;
+        public static string UniqueRowIdColumnName = "RowIndex";
 
         private bool _firstTime = true;
 
@@ -70,7 +71,7 @@ namespace Gleanio.Core.Target
                 {
                     var ordinal = 0;
 
-                    var rowId = new DataColumn("BULK_IMPORT_ID", typeof(long))
+                    var rowId = new DataColumn(UniqueRowIdColumnName, typeof(long))
                     {
                         Unique = true,
                         AutoIncrementSeed = 1,
@@ -81,7 +82,7 @@ namespace Gleanio.Core.Target
 
                     if (!DeleteIfExists)
                     {
-                        using (var cmd = new SqlCommand(string.Format("IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') SELECT Coalesce(MAX(BULK_IMPORT_ID),0)+1 FROM [{0}].[{1}]; ELSE SELECT 1;", _schema, _table), c))
+                        using (var cmd = new SqlCommand(string.Format("IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') SELECT Coalesce(MAX({2}),0)+1 FROM [{0}].[{1}]; ELSE SELECT 1;", _schema, _table, UniqueRowIdColumnName), c))
                         {
                             rowId.AutoIncrementSeed = Convert.ToInt64(cmd.ExecuteScalar());
                         }
@@ -136,24 +137,29 @@ namespace Gleanio.Core.Target
                         foreach (var column in (Columns.OfType<BaseColumn>().Where(bc => bc is StringColumn || bc is DerivedStringColumn)))
                         {
                             int length = 255;
+                            int maxlength = -1;
                             if (column is StringColumn)
                             {
                                 var sc = column as StringColumn;
+                                maxlength = sc.MaxLength;
                                 length = sc.DetectedMaxLength <= 0 ? sc.MaxLength <= 0 ? 255 : sc.MaxLength : sc.DetectedMaxLength;
                             }
                             else if (column is DerivedStringColumn)
                             {
                                 var sc = column as DerivedStringColumn;
                                 length = sc.DetectedMaxLength <= 0 ? 255 : sc.DetectedMaxLength;
+                                maxlength = length > 4000 ? -1 : length;
                             }
+
+                            maxlength = length > 4000 ? -1 : length;
 
                             if (DeleteIfExists)
                             {
-                                sqlBuilder.AppendLine(string.Format("ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table, column.ColumnName, length));
+                                sqlBuilder.AppendLine(string.Format("ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table, column.ColumnName, maxlength != -1 ? length.ToString() : "MAX"));
                             }
                             else
                             {
-                                sqlBuilder.AppendLine(string.Format("IF ((SELECT MAX(LEN([{2}])) FROM [{0}].[{1}]) < {3}) ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table, column.ColumnName, length));
+                                sqlBuilder.AppendLine(string.Format("IF ((SELECT MAX(LEN([{2}])) FROM [{0}].[{1}]) < {3}) ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({4});", _schema, _table, column.ColumnName, length, maxlength != -1 ? length.ToString() : "MAX"));
                             }
                         }
                         using (var cmd = new SqlCommand(sqlBuilder.ToString(), c))

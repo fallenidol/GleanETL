@@ -6,7 +6,7 @@ namespace Gleanio.Core.Source
     {
         #region Fields
 
-        private readonly List<TextFileLine> _fileLines;
+        private readonly List<TextLine> _fileLines;
 
         #endregion Fields
 
@@ -14,14 +14,14 @@ namespace Gleanio.Core.Source
 
         public TextFileRecord()
         {
-            _fileLines = new List<TextFileLine>();
+            _fileLines = new List<TextLine>();
         }
 
         #endregion Constructors
 
         #region Properties
 
-        public IEnumerable<TextFileLine> FileLines
+        public IEnumerable<TextLine> FileLines
         {
             get { return _fileLines; }
         }
@@ -30,7 +30,7 @@ namespace Gleanio.Core.Source
 
         #region Methods
 
-        public void AddFileLine(TextFileLine textFileLine)
+        public void AddFileLine(TextLine textFileLine)
         {
             _fileLines.Add(textFileLine);
         }

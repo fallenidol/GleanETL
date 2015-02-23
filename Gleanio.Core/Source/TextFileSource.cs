@@ -4,18 +4,36 @@ using System.IO;
 
 namespace Gleanio.Core.Source
 {
+    public interface IExtractSource
+    {
+        string DisplayName { get; }
+        IEnumerator<TextLine> EnumerateLines();
+        Func<string, bool> TakeLineIf { get; set; }
+    }
+
+
+
+
     /// <summary>
     ///     A source text file.
     /// </summary>
-    public class TextFile
+    public class TextFileSource : IExtractSource
     {
+        public string DisplayName
+        {
+            get
+            {
+                return string.Format("{0}/{1}", FileInfo.Directory.Name, FileInfo.Name);
+            }
+        }
+
         #region Constructors
 
-        public TextFile(string pathToFile)
+        public TextFileSource(string pathToFile)
         {
             if (pathToFile != null)
             {
-                ExtractLineIf = line => true;
+                TakeLineIf = line => true;
 
                 _pathToFile = pathToFile.Trim();
 
@@ -40,15 +58,15 @@ namespace Gleanio.Core.Source
 
         #region Methods
 
-        public IEnumerator<TextFileLine> EnumerateFileLines()
+        public IEnumerator<TextLine> EnumerateLines()
         {
             lock (_enumeratorLock)
             {
                 foreach (var line in File.ReadLines(_pathToFile))
                 {
-                    if (ExtractLineIf.Invoke(line))
+                    if (TakeLineIf.Invoke(line))
                     {
-                        yield return new TextFileLine(line);
+                        yield return new TextLine(line);
                     }
                 }
             }
@@ -72,7 +90,7 @@ namespace Gleanio.Core.Source
 
         public FileInfo FileInfo
         {
-            get { return _pathToFile == null ? null :_fileInfo ?? (_fileInfo = new FileInfo(_pathToFile)); }
+            get { return _pathToFile == null ? null : _fileInfo ?? (_fileInfo = new FileInfo(_pathToFile)); }
         }
 
         public string FilePath
@@ -95,7 +113,7 @@ namespace Gleanio.Core.Source
             get { return _filenameWithoutExtension; }
         }
 
-        public Func<string, bool> ExtractLineIf { get; set; }
+        public Func<string, bool> TakeLineIf { get; set; }
 
         #endregion Properties
     }

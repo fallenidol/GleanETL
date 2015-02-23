@@ -13,8 +13,8 @@ namespace Gleanio.Core.Extraction
     {
         #region Constructors
 
-        protected RecordExtraction(BaseColumn[] columns, TextFile source, TExtractTarget target)
-            : base(columns, source, target)
+        public RecordExtraction(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
+            : base(columns, source, target, throwParseErrors)
         {
             IsFirstLineOfRecord = (line, prevLine) => true;
             ParseRecord =
@@ -33,7 +33,7 @@ namespace Gleanio.Core.Extraction
 
         #region Properties
 
-        public Func<TextFileLine, TextFileLine, bool> IsFirstLineOfRecord { get; set; }
+        public Func<TextLine, TextLine, bool> IsFirstLineOfRecord { get; set; }
 
         public Func<TextFileRecord, IEnumerable<TextFileRecordLine>> ParseRecord { get; set; }
 
@@ -47,9 +47,9 @@ namespace Gleanio.Core.Extraction
         public IEnumerable<TextFileRecord> EnumerateRecords()
         {
             TextFileRecord currentTextFileRecord = null;
-            TextFileLine previousLine = null;
+            TextLine previousLine = null;
 
-            var enumerator = Source.EnumerateFileLines();
+            var enumerator = Source.EnumerateLines();
             while (enumerator.MoveNext())
             {
                 _fileLinesRead++;

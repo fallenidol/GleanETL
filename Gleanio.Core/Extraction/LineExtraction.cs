@@ -12,8 +12,8 @@ namespace Gleanio.Core.Extraction
     {
         #region Constructors
 
-        protected LineExtraction(BaseColumn[] columns, TextFile source, TExtractTarget target)
-            : base(columns, source, target)
+        public LineExtraction(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
+            : base(columns, source, target, throwParseErrors)
         {
             SplitLineFunc = line => line.OriginalLine.Split(new[] {','}, StringSplitOptions.None);
         }
@@ -22,7 +22,7 @@ namespace Gleanio.Core.Extraction
 
         #region Properties
 
-        public Func<TextFileLine, string[]> SplitLineFunc { get; set; }
+        public Func<TextLine, string[]> SplitLineFunc { get; set; }
 
         #endregion Properties
 
@@ -49,7 +49,7 @@ namespace Gleanio.Core.Extraction
 
         private IEnumerable<object[]> EnumerateSourceLines()
         {
-            var enumerator = Source.EnumerateFileLines();
+            var enumerator = Source.EnumerateLines();
             while (enumerator.MoveNext())
             {
                 _fileLinesRead++;

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
+using System.Diagnostics;
 using System.Linq;
 using Gleanio.Core.Columns;
 using Gleanio.Core.EventArgs;
@@ -14,13 +14,16 @@ namespace Gleanio.Core.Extraction
     {
         public override string ToString()
         {
-            return string.Format("{0} -> {1}", Source.FileInfo.Directory.Name + "/" + Source.FileInfo.Name, Target);
+            return string.Format("{0} -> {1}", Source.DisplayName, Target);
         }
 
         #region Constructors
+        private bool _throwParseErrors = true;
 
-        protected Extract(BaseColumn[] columns, TextFile source, TExtractTarget target)
+        protected Extract(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
         {
+            _throwParseErrors = throwParseErrors;
+
             Columns = columns;
             target.Columns = Columns;
 
@@ -32,6 +35,18 @@ namespace Gleanio.Core.Extraction
                 column.ParseError -= OnDataParseError;
                 column.ParseError += OnDataParseError;
             });
+
+            DataParseError -= DataParseErrorHandler;
+            DataParseError += DataParseErrorHandler;
+        }
+
+        private void DataParseErrorHandler(object sender, ParseErrorEventArgs e)
+        {
+            if (_throwParseErrors)
+            {
+                Trace.WriteLine(string.Format("PARSE ERROR: {0}, {1}", e.ValueBeingParsed ?? string.Empty, e.Message));
+                throw new ParseException(e.ValueBeingParsed, e.TargetType);
+            }
         }
 
         #endregion Constructors
@@ -62,7 +77,7 @@ namespace Gleanio.Core.Extraction
 
         #region Properties
 
-        public TextFile Source { get; private set; }
+        public IExtractSource Source { get; private set; }
 
         public IExtractTarget Target { get; private set; }
 
