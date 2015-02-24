@@ -63,7 +63,11 @@ namespace Gleanio.Core.Columns
                         "ddMMyyyy", 
                         "dd/M/yy", 
                         "d/MM/yy", 
-                        "d/M/yy"
+                        "d/M/yy",
+                        "yyyy-MM-dd",
+                        "yyyy-M-d",
+                        "yyyy-MM-d",
+                        "yyyy-M-dd"
                     };
                     break;
                 case StandardDateFormats.UnitedStates:
@@ -76,7 +80,11 @@ namespace Gleanio.Core.Columns
                         "MMddyyyy", 
                         "M/dd/yy", 
                         "MM/d/yy", 
-                        "M/d/yy"
+                        "M/d/yy",
+                        "yyyy-MM-dd",
+                        "yyyy-M-d",
+                        "yyyy-MM-d",
+                        "yyyy-M-dd"
                     };
                     break;
             }

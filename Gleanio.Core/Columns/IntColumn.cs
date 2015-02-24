@@ -24,7 +24,7 @@ namespace Gleanio.Core.Columns
             int temp;
             if (!string.IsNullOrWhiteSpace(parsedValue) &&
                 int.TryParse(
-                    parsedValue.RemoveAllWhitespace(),
+                    parsedValue.Trim(),
                     NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;

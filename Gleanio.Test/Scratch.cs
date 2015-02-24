@@ -106,10 +106,13 @@
         [TestMethod]
         public void ExtractWindowsUpdateLogFileToDatabase()
         {
-            const string sourceFile = @"C:\Windows\WindowsUpdate.log";
+            const string windowsUpdateLog = @"C:\Windows\WindowsUpdate.log";
 
-            if (File.Exists(sourceFile))
+            if (File.Exists(windowsUpdateLog))
             {
+                string sourceFile = Path.GetTempFileName();
+                File.Copy(windowsUpdateLog, sourceFile, true);
+
                 var columns = new BaseColumn[]
                 {
                     new DateColumn("Timestamp", new[] {"yyyy-MM-dd HH:mm:ss:fff"}, "yyyy-MM-dd HH:mm:ss.fff"),
@@ -131,10 +134,15 @@
                 };
 
                 extraction.ExtractToTarget();
+
+                if (File.Exists(sourceFile))
+                {
+                    File.Delete(sourceFile);
+                }
             }
             else
             {
-                Assert.Inconclusive("File could not be found: {0}.", sourceFile);
+                Assert.Inconclusive("File could not be found: {0}.", windowsUpdateLog);
             }
         }
 

@@ -24,7 +24,7 @@ namespace Gleanio.Core.Columns
             decimal temp;
             if (!string.IsNullOrWhiteSpace(parsedValue) &&
                 decimal.TryParse(
-                    parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty).Replace("\"", string.Empty),
+                    parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty),
                     NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
