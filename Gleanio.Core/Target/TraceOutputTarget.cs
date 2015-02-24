@@ -13,6 +13,8 @@
 
             dataRows.ForEach((i, o) =>
             {
+                //var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(o);
+
                 Trace.WriteLine(string.Format("Row {0}: {1}", i + 1, string.Join(",", o)));
 
                 lineCount++;

@@ -33,6 +33,7 @@ namespace Gleanio.Core.Target
 
             foreach (var row in dataRows)
             {
+                //var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
                 var line = string.Join(ColumnDelimiter, row);
 
                 rows.AppendLine(line);

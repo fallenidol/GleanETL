@@ -2,6 +2,11 @@
 {
     public class ExtractCompleteArgs : System.EventArgs
     {
+        public override string ToString()
+        {
+            return string.Format("Total Duration={1}ms; Extract Duration={2}ms; Commit Duration={0}ms; Lines Extracted={3}, Lines Passed={4}; Lines Committed={5};", this.CommitDurationMs, this.DurationInMs, this.ExtractDurationMs, this.LinesExtractedFromSource, this.LinesPassedToTarget, this.LinesCommittedToTarget);
+        }
+
         #region Constructors
 
         public ExtractCompleteArgs(long linesExtractedFromSource, long linesPassedToTarget, long linesCommittedToTarget,

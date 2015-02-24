@@ -11,6 +11,7 @@ namespace Gleanio.Core.Target
 
         protected BaseExtractTarget(bool deleteIfExists = false)
         {
+            ThrowMultipleEnumerationError = true;
             DeleteIfExists = deleteIfExists;
         }
 
@@ -18,21 +19,21 @@ namespace Gleanio.Core.Target
 
         #region Methods
 
-        protected object[] ValuesWithoutIgnoredColumns(object[] row)
-        {
-            var ic = Columns.OfType<IgnoredColumn>();
-            if (ic.Any())
-            {
-                var iic = ic.Select(column => Array.IndexOf(Columns, column));
-                var io = row.Where((o, i) => iic.Contains(i));
-                var valuesWithoutIgnoredColumns = row.Except(io).ToArray();
-                return valuesWithoutIgnoredColumns;
-            }
-            else
-            {
-                return row;
-            }
-        }
+        //protected object[] ValuesWithoutIgnoredColumns(object[] row)
+        //{
+        //    var ic = Columns.OfType<IgnoredColumn>();
+        //    if (ic.Any())
+        //    {
+        //        var iic = ic.Select(column => Array.IndexOf(Columns, column));
+        //        var io = row.Where((o, i) => iic.Contains(i));
+        //        var valuesWithoutIgnoredColumns = row.Except(io).ToArray();
+        //        return valuesWithoutIgnoredColumns;
+        //    }
+        //    else
+        //    {
+        //        return row;
+        //    }
+        //}
 
         public abstract long CommitData(IEnumerable<object[]> dataRows);
 
@@ -41,6 +42,7 @@ namespace Gleanio.Core.Target
         #region Properties
 
         public bool DeleteIfExists { get; private set; }
+        public bool ThrowMultipleEnumerationError { get; private set; }
 
         internal BaseColumn[] Columns { get; set; }
 

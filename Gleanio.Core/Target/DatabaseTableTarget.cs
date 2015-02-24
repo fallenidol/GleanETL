@@ -175,9 +175,9 @@ namespace Gleanio.Core.Target
 
         private void AddRow(object[] row, DataTable data, int batchSize, SqlConnection c, bool isLastRow)
         {
-            var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
+            //var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
 
-            var values = (new object[] { null }).Concat(valuesWithoutIgnoredColumns);
+            var values = (new object[] { null }).Concat(row);
 
             if (data.Rows.Count <= batchSize)
             {

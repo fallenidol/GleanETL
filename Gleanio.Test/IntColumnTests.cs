@@ -27,6 +27,7 @@
             };
 
             extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -44,6 +45,7 @@
             };
 
             extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -61,6 +63,7 @@
             };
 
             extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -78,6 +81,7 @@
             };
 
             extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -95,6 +99,7 @@
             };
 
             extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -112,12 +117,18 @@
             };
 
             extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
         private void DataParseError(object sender, Core.EventArgs.ParseErrorEventArgs e)
         {
             Trace.WriteLine(string.Format("PARSE ERROR: {0}, {1}", e.ValueBeingParsed ?? string.Empty, e.Message));
+        }
+
+        private void ExtractComplete(object sender, Core.EventArgs.ExtractCompleteArgs e)
+        {
+            Trace.WriteLine(string.Format("EXTRACTION COMPLETE!!: {0}", e.ToString()));
         }
 
         #endregion Methods

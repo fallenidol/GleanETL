@@ -1,16 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Gleanio.Core.Columns;
-using Gleanio.Core.Source;
-using Gleanio.Core.Target;
-
-namespace Gleanio.Core.Extraction
+﻿namespace Gleanio.Core.Extraction
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+
+    using Gleanio.Core.Columns;
+    using Gleanio.Core.Source;
+    using Gleanio.Core.Target;
+
     public class RecordExtraction<TExtractTarget> : Extract<TExtractTarget>
         where TExtractTarget : BaseExtractTarget
     {
+        #region Fields
+
+        private readonly object _enumeratorLock1 = new object();
+        private readonly object _enumeratorLock2 = new object();
+
+        private long _fileLinesRead;
+        private long _linesExtracted;
+        private bool _mutipleEnumeration1 = false;
+        private bool _mutipleEnumeration2 = false;
+
+        #endregion Fields
+
         #region Constructors
 
         public RecordExtraction(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
@@ -33,52 +46,71 @@ namespace Gleanio.Core.Extraction
 
         #region Properties
 
-        public Func<TextLine, TextLine, bool> IsFirstLineOfRecord { get; set; }
+        public Func<TextLine, TextLine, bool> IsFirstLineOfRecord
+        {
+            get; set;
+        }
 
-        public Func<TextFileRecord, IEnumerable<TextFileRecordLine>> ParseRecord { get; set; }
+        public Func<TextFileRecord, IEnumerable<TextFileRecordLine>> ParseRecord
+        {
+            get; set;
+        }
 
         #endregion Properties
 
         #region Methods
 
-        private long _fileLinesRead;
-        private long _linesExtracted;
-
         public IEnumerable<TextFileRecord> EnumerateRecords()
         {
-            TextFileRecord currentTextFileRecord = null;
-            TextLine previousLine = null;
-
-            var enumerator = Source.EnumerateLines();
-            while (enumerator.MoveNext())
+            lock (_enumeratorLock1)
             {
-                _fileLinesRead++;
-
-                var line = enumerator.Current;
-
-                if (IsFirstLineOfRecord(line, previousLine))
+                if (ThrowMultipleEnumerationError)
                 {
-                    if (currentTextFileRecord != null)
+                    if (_mutipleEnumeration1)
                     {
-                        yield return currentTextFileRecord;
+                        throw new Exception("Multiple enumeration of data!");
+                    }
+                }
+
+                TextFileRecord currentTextFileRecord = null;
+                TextLine previousLine = null;
+
+                var enumerator = Source.EnumerateLines();
+                while (enumerator.MoveNext())
+                {
+                    _fileLinesRead++;
+
+                    var line = enumerator.Current;
+
+                    if (IsFirstLineOfRecord(line, previousLine))
+                    {
+                        if (currentTextFileRecord != null)
+                        {
+                            yield return currentTextFileRecord;
+                        }
+
+                        currentTextFileRecord = new TextFileRecord();
                     }
 
-                    currentTextFileRecord = new TextFileRecord();
+                    if (currentTextFileRecord != null)
+                    {
+                        currentTextFileRecord.AddFileLine(line);
+                    }
+
+                    previousLine = line;
                 }
 
-                if (currentTextFileRecord != null)
-                {
-                    currentTextFileRecord.AddFileLine(line);
-                }
+                yield return currentTextFileRecord;
 
-                previousLine = line;
+                _mutipleEnumeration1 = true;
             }
-
-            yield return currentTextFileRecord;
         }
 
         public override void ExtractToTarget()
         {
+            _mutipleEnumeration1 = false;
+            _mutipleEnumeration2 = false;
+
             var sw = Stopwatch.StartNew();
 
             var records = EnumerateRecords();
@@ -112,23 +144,35 @@ namespace Gleanio.Core.Extraction
 
         public IEnumerable<TextFileRecordLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
         {
-            // ReSharper disable once LoopCanBeConvertedToQuery
-            foreach (var record in records)
+            lock (_enumeratorLock2)
             {
-                if (record.FileLines.Any())
+                if (ThrowMultipleEnumerationError)
                 {
-                    var recordLines = ParseRecord(record);
-                    if (recordLines != null)
+                    if (_mutipleEnumeration2)
                     {
-                        foreach (var line in recordLines)
+                        throw new Exception("Multiple enumeration of data!");
+                    }
+                }
+
+                foreach (var record in records)
+                {
+                    if (record.FileLines.Any())
+                    {
+                        var recordLines = ParseRecord(record);
+                        if (recordLines != null)
                         {
-                            if (line != null)
+                            foreach (var line in recordLines)
                             {
-                                yield return line;
+                                if (line != null)
+                                {
+                                    yield return line;
+                                }
                             }
                         }
                     }
                 }
+
+                _mutipleEnumeration2 = true;
             }
         }
 

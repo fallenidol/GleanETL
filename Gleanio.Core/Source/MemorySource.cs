@@ -5,9 +5,15 @@
 
     public class MemorySource : IExtractSource
     {
+        #region Fields
+
+        private readonly object _enumeratorLock1 = new object();
+
+        #endregion Fields
+
         #region Constructors
 
-        public MemorySource(string displayName, string[] data)
+        public MemorySource(string displayName, IEnumerable<string> data)
         {
             TakeLineIf = line => true;
 
@@ -30,7 +36,7 @@
             get; set;
         }
 
-        private string[] Data
+        private IEnumerable<string> Data
         {
             get; set;
         }
@@ -41,11 +47,14 @@
 
         public IEnumerator<TextLine> EnumerateLines()
         {
-            foreach (var line in Data)
+            lock (_enumeratorLock1)
             {
-                if (TakeLineIf.Invoke(line))
+                foreach (var line in Data)
                 {
-                    yield return new TextLine(line);
+                    if (TakeLineIf.Invoke(line))
+                    {
+                        yield return new TextLine(line);
+                    }
                 }
             }
         }

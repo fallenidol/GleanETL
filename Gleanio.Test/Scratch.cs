@@ -3,7 +3,9 @@
     using System;
     using System.Data;
     using System.Data.SqlClient;
+    using System.Diagnostics;
     using System.IO;
+    using System.Text;
     using Gleanio.Core;
     using Gleanio.Core.Columns;
     using Gleanio.Core.Enumerations;
@@ -22,18 +24,6 @@
         #endregion Fields
 
         #region Methods
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            //
-        }
-
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext ctx)
-        {
-            //
-        }
 
         [TestMethod]
         public void ExtractHostsFileToDatabase()
@@ -55,7 +45,7 @@
 
                 var target = new DatabaseTableTarget(LocalDbConnectionString, "Hosts", deleteTableIfExists: true);
 
-                var columns = new[] 
+                var columns = new[]
                 {
                     new StringColumn("IpAddress"),
                     new StringColumn("Hostname", stringCapitalisation: StringCapitalisation.ToLowerCase)
@@ -70,6 +60,8 @@
                                 .ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
                 };
 
+                extraction.DataParseError += DataParseError;
+                extraction.ExtractComplete += ExtractComplete;
                 extraction.ExtractToTarget();
             }
         }
@@ -100,6 +92,8 @@
                             .ForEachAssign((i, s) => (i > 0 && s.Contains("#")) ? s.Substring(0, s.IndexOf('#')) : s)
             };
 
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -133,6 +127,8 @@
                     SplitLineFunc = line => line.Split(0, 23, 28, 33)
                 };
 
+                extraction.DataParseError += DataParseError;
+                extraction.ExtractComplete += ExtractComplete;
                 extraction.ExtractToTarget();
 
                 if (File.Exists(sourceFile))
@@ -144,12 +140,6 @@
             {
                 Assert.Inconclusive("File could not be found: {0}.", windowsUpdateLog);
             }
-        }
-
-        [TestCleanup]
-        public void TestCleanUp()
-        {
-            //
         }
 
         [TestInitialize]
@@ -177,6 +167,16 @@
                     cmd.ExecuteNonQuery();
                 }
             }
+        }
+
+        private void DataParseError(object sender, Core.EventArgs.ParseErrorEventArgs e)
+        {
+            Trace.WriteLine(string.Format("PARSE ERROR: {0}, {1}", e.ValueBeingParsed ?? string.Empty, e.Message));
+        }
+
+        private void ExtractComplete(object sender, Core.EventArgs.ExtractCompleteArgs e)
+        {
+            Trace.WriteLine(string.Format("EXTRACTION COMPLETE!!: {0}", e.ToString()));
         }
 
         #endregion Methods

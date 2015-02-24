@@ -1,31 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace Gleanio.Core.Source
+﻿namespace Gleanio.Core.Source
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     public interface IExtractSource
     {
-        string DisplayName { get; }
+        #region Properties
+
+        string DisplayName
+        {
+            get;
+        }
+
+        Func<string, bool> TakeLineIf
+        {
+            get; set;
+        }
+
+        #endregion Properties
+
+        #region Methods
+
         IEnumerator<TextLine> EnumerateLines();
-        Func<string, bool> TakeLineIf { get; set; }
+
+        #endregion Methods
     }
-
-
-
 
     /// <summary>
     ///     A source text file.
     /// </summary>
     public class TextFileSource : IExtractSource
     {
-        public string DisplayName
-        {
-            get
-            {
-                return string.Format("{0}/{1}", FileInfo.Directory.Name, FileInfo.Name);
-            }
-        }
+        #region Fields
+
+        private readonly object _enumeratorLock = new object();
+        private readonly string _filenameExtension;
+        private readonly string _filenameWithExtension;
+        private readonly string _filenameWithoutExtension;
+        private readonly string _pathToFile;
+
+        private FileInfo _fileInfo;
+        #endregion Fields
 
         #region Constructors
 
@@ -56,46 +72,19 @@ namespace Gleanio.Core.Source
 
         #endregion Constructors
 
-        #region Methods
-
-        public IEnumerator<TextLine> EnumerateLines()
-        {
-            lock (_enumeratorLock)
-            {
-                foreach (var line in File.ReadLines(_pathToFile))
-                {
-                    if (TakeLineIf.Invoke(line))
-                    {
-                        yield return new TextLine(line);
-                    }
-                }
-            }
-        }
-
-        #endregion Methods
-
-        #region Fields
-
-        private readonly object _enumeratorLock = new object();
-        private readonly string _filenameExtension;
-        private readonly string _filenameWithExtension;
-        private readonly string _filenameWithoutExtension;
-        private readonly string _pathToFile;
-
-        #endregion Fields
-
         #region Properties
 
-        private FileInfo _fileInfo;
+        public string DisplayName
+        {
+            get
+            {
+                return string.Format("{0}/{1}", FileInfo.Directory.Name, FileInfo.Name);
+            }
+        }
 
         public FileInfo FileInfo
         {
             get { return _pathToFile == null ? null : _fileInfo ?? (_fileInfo = new FileInfo(_pathToFile)); }
-        }
-
-        public string FilePath
-        {
-            get { return _pathToFile; }
         }
 
         public string FilenameExtension
@@ -113,8 +102,34 @@ namespace Gleanio.Core.Source
             get { return _filenameWithoutExtension; }
         }
 
-        public Func<string, bool> TakeLineIf { get; set; }
+        public string FilePath
+        {
+            get { return _pathToFile; }
+        }
+
+        public Func<string, bool> TakeLineIf
+        {
+            get; set;
+        }
 
         #endregion Properties
+
+        #region Methods
+
+        public IEnumerator<TextLine> EnumerateLines()
+        {
+            lock (_enumeratorLock)
+            {
+                foreach (var line in File.ReadLines(_pathToFile))
+                {
+                    if (TakeLineIf.Invoke(line))
+                    {
+                        yield return new TextLine(line);
+                    }
+                }
+            }
+        }
+
+        #endregion Methods
     }
 }
