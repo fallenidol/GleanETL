@@ -207,10 +207,21 @@ namespace GleanETL.Core.Target
 
         private void CreateSchema(DataTable data, SqlConnection c)
         {
-            var schemaSql = "IF NOT EXISTS (SELECT 'x' FROM sys.schemas WHERE name = N'" + _schema +
-                            "') EXEC sp_executesql N'CREATE SCHEMA [" + _schema + "] AUTHORIZATION [dbo]';";
+            var schemaSql = @"
+sp_executesql @statement=N'
+IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = @Schema))
+    BEGIN
+        EXEC sp_executesql N'CREATE SCHEMA [@Schema] AUTHORIZATION [dbo]';
+    END
+'
+";
+
             using (var cmd = new SqlCommand(schemaSql, c))
             {
+                var p1 = new SqlParameter("@Schema", _schema);
+
+                cmd.Parameters.AddRange(new[] { p1 });
+
                 cmd.ExecuteNonQuery();
             }
 
@@ -218,8 +229,14 @@ namespace GleanETL.Core.Target
             var sql = createTableSql + "; ";
             if (DeleteIfExists)
             {
-                sql = "IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + _schema +
-                      "' AND TABLE_NAME = '" + _table + "')) BEGIN DROP TABLE " + _schema + "." + _table + " END; " + sql;
+                sql = @"
+sp_executesql @statement=N'
+IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ''" + _schema + @"'' AND TABLE_NAME = ''" + _table + @"'')) 
+    BEGIN 
+        DROP TABLE [" + _schema + @"].[" + _table + @"];
+    END;';
+
+" + sql;
             }
             using (var cmd = new SqlCommand(sql, c))
             {

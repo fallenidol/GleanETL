@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
 
     using GleanETL.Core.Columns;
     using GleanETL.Core.Extraction;
@@ -14,7 +15,29 @@
     [TestClass]
     public class IgnoredColumnTests
     {
+        #region Fields
+
+        private static string _testResultsDirectoryPath = null;
+
+        #endregion Fields
+
         #region Methods
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            var di = Directory.GetParent(_testResultsDirectoryPath);
+            if (di.Exists && di.Name.Equals("TestResults", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Directory.Delete(di.FullName, true);
+            }
+        }
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext ctx)
+        {
+            _testResultsDirectoryPath = ctx.TestDir;
+        }
 
         [TestMethod]
         public void TestIgnoredColumn()

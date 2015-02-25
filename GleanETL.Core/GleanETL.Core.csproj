@@ -59,6 +59,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extraction\LineExtraction.cs" />
     <Compile Include="Extraction\TextFileRecordLine.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Source\MemorySource.cs" />
     <Compile Include="SqlTableCreator.cs" />
