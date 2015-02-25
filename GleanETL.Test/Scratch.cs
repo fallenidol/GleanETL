@@ -19,12 +19,24 @@
     {
         #region Fields
 
-        //private const string LocalDbConnectionString = @"Server=(localdb)\v12.0;Integrated Security=true;Initial Catalog=GleanETL;";
-        private const string LocalDbConnectionString = @"Server=(local)\SQL2014;User ID=sa;Password=Password12!;Initial Catalog=GleanETL;";
+        private const string LocalDbConnectionString = @"Server=(localDB)\MSSQLLocalDB;Integrated Security=true;Initial Catalog=GleanETL;";
+        private const string AppVeyorDbConnectionString = @"Server=(local)\SQL2014;User ID=sa;Password=Password12!;Initial Catalog=GleanETL;";
+        private static string _databaseConnectionString = LocalDbConnectionString;
 
         #endregion Fields
 
         #region Methods
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext ctx)
+        {
+            // this is a crude way of detecting if the tests are running in an AppVeyor build.
+            if (Directory.Exists(@"C:\Program Files\AppVeyor") || Directory.Exists(@"C:\Program Files (x86)\AppVeyor"))
+            {
+                _databaseConnectionString = AppVeyorDbConnectionString;
+            }
+        }
+
 
         [TestMethod]
         public void ExtractHostsFileToDatabase()
@@ -44,7 +56,7 @@
                         (!line.Contains("#") || line.IndexOf('#') > 0)
                 };
 
-                var target = new DatabaseTableTarget(LocalDbConnectionString, "Hosts", deleteTableIfExists: true);
+                var target = new DatabaseTableTarget(_databaseConnectionString, "Hosts", deleteTableIfExists: true);
 
                 var columns = new[]
                 {
@@ -121,7 +133,7 @@
                     TakeLineIf = line => line.Length > 0
                 };
 
-                var target = new DatabaseTableTarget(LocalDbConnectionString, "WindowsUpdateLog", deleteTableIfExists: true);
+                var target = new DatabaseTableTarget(_databaseConnectionString, "WindowsUpdateLog", deleteTableIfExists: true);
 
                 var extraction = new LineExtraction<DatabaseTableTarget>(columns, source, target, throwParseErrors: true)
                 {
@@ -146,7 +158,7 @@
         [TestInitialize]
         public void TestInit()
         {
-            var csb = new SqlConnectionStringBuilder(LocalDbConnectionString);
+            var csb = new SqlConnectionStringBuilder(_databaseConnectionString);
             csb.InitialCatalog = "master";
 
             using (var c = new SqlConnection(csb.ConnectionString))
