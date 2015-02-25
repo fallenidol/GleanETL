@@ -19,7 +19,8 @@
     {
         #region Fields
 
-        private const string LocalDbConnectionString = @"Server=(localdb)\v11.0;Integrated Security=true;Initial Catalog=GleanETL;";
+        //private const string LocalDbConnectionString = @"Server=(localdb)\v12.0;Integrated Security=true;Initial Catalog=GleanETL;";
+        private const string LocalDbConnectionString = @"Server=(local)\SQL2014;User ID=sa;Password=Password12!;Initial Catalog=GleanETL;";
 
         #endregion Fields
 
