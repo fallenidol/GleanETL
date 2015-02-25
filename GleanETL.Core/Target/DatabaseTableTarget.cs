@@ -209,19 +209,15 @@ namespace GleanETL.Core.Target
         {
             var schemaSql = @"
 sp_executesql @statement=N'
-IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = @Schema))
+IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + _schema + @"''))
     BEGIN
-        EXEC sp_executesql N'CREATE SCHEMA [@Schema] AUTHORIZATION [dbo]';
+        EXEC sp_executesql N''CREATE SCHEMA [" + _schema + @"] AUTHORIZATION [dbo]'';
     END
 '
 ";
 
             using (var cmd = new SqlCommand(schemaSql, c))
             {
-                var p1 = new SqlParameter("@Schema", _schema);
-
-                cmd.Parameters.AddRange(new[] { p1 });
-
                 cmd.ExecuteNonQuery();
             }
 
