@@ -15,6 +15,7 @@ namespace GleanETL.Core
             builder.AppendLine(string.Format(line, parameters) + Environment.NewLine);
         }
 
+
         public static bool ContainsCaseInsensitive(this string text, string search)
         {
             return text.IndexOf(search, StringComparison.InvariantCultureIgnoreCase) >= 0;

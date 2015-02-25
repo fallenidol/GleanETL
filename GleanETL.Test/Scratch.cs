@@ -6,12 +6,14 @@
     using System.Diagnostics;
     using System.IO;
     using System.Text;
+
     using GleanETL.Core;
     using GleanETL.Core.Columns;
     using GleanETL.Core.Enumerations;
     using GleanETL.Core.Extraction;
     using GleanETL.Core.Source;
     using GleanETL.Core.Target;
+
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -19,24 +21,37 @@
     {
         #region Fields
 
-        private const string LocalDbConnectionString = @"Server=(localDB)\MSSQLLocalDB;Integrated Security=true;Initial Catalog=GleanETL;";
         private const string AppVeyorDbConnectionString = @"Server=(local)\SQL2014;User ID=sa;Password=Password12!;Initial Catalog=GleanETL;";
+        private const string LocalDbConnectionString = @"Server=(localDB)\MSSQLLocalDB;Integrated Security=true;Initial Catalog=GleanETL;";
+
         private static string _databaseConnectionString = LocalDbConnectionString;
+        private static string _testResultsDirectoryPath = null;
 
         #endregion Fields
 
         #region Methods
 
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            var di = Directory.GetParent(_testResultsDirectoryPath);
+            if (di.Exists && di.Name.Equals("TestResults", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Directory.Delete(di.FullName, true);
+            }
+        }
+
         [ClassInitialize]
         public static void ClassInitialize(TestContext ctx)
         {
+            _testResultsDirectoryPath = ctx.TestDir;
+
             // this is a crude way of detecting if the tests are running in an AppVeyor build.
             if (Directory.Exists(@"C:\Program Files\AppVeyor") || Directory.Exists(@"C:\Program Files (x86)\AppVeyor"))
             {
                 _databaseConnectionString = AppVeyorDbConnectionString;
             }
         }
-
 
         [TestMethod]
         public void ExtractHostsFileToDatabase()

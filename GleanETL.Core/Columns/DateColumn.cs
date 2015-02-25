@@ -150,6 +150,7 @@ namespace GleanETL.Core.Columns
         #endregion Methods
     }
 
+    [Serializable]
     public class ParseException : Exception
     {
         #region Constructors
