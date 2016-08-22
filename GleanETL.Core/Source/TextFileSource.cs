@@ -4,30 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
 
-    public interface IExtractSource
-    {
-        #region Properties
-
-        string DisplayName
-        {
-            get;
-        }
-
-        Func<string, bool> TakeLineIf
-        {
-            get; set;
-        }
-
-        #endregion Properties
-
-        #region Methods
-
-        IEnumerator<TextLine> EnumerateLines();
-
-        #endregion Methods
-    }
-
-    /// <summary>
+	/// <summary>
     ///     A source text file.
     /// </summary>
     public class TextFileSource : IExtractSource

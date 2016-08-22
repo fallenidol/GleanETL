@@ -45,7 +45,10 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Columns\DerivedColumn.cs" />
+    <Compile Include="Columns\DerivedStringColumn.cs" />
     <Compile Include="Columns\IgnoredColumn.cs" />
+    <Compile Include="Columns\ParseException.cs" />
     <Compile Include="EventArgs\ExtractCompleteArgs.cs" />
     <Compile Include="EventArgs\ParseErrorEventArgs.cs" />
     <Compile Include="Constants.cs" />
@@ -61,6 +64,7 @@
     <Compile Include="Extraction\TextFileRecordLine.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="HelperFunctions.cs" />
+    <Compile Include="Source\IExtractSource.cs" />
     <Compile Include="Source\MemorySource.cs" />
     <Compile Include="SqlTableCreator.cs" />
     <Compile Include="Target\BaseExtractTarget.cs" />

@@ -21,7 +21,6 @@
     {
         #region Fields
 
-        private const string AppVeyorDbConnectionString = @"Server=(local)\SQL2014;User ID=sa;Password=Password12!;Initial Catalog=GleanETL;";
         private const string LocalDbConnectionString = @"Server=(localDB)\MSSQLLocalDB;Integrated Security=true;Initial Catalog=GleanETL;";
 
         private static string _databaseConnectionString = LocalDbConnectionString;
@@ -45,12 +44,6 @@
         public static void ClassInitialize(TestContext ctx)
         {
             _testResultsDirectoryPath = ctx.TestDir;
-
-            // this is a crude way of detecting if the tests are running in an AppVeyor build.
-            if (Directory.Exists(@"C:\Program Files\AppVeyor") || Directory.Exists(@"C:\Program Files (x86)\AppVeyor"))
-            {
-                _databaseConnectionString = AppVeyorDbConnectionString;
-            }
         }
 
         [TestMethod]
