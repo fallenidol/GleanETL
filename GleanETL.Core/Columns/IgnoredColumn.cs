@@ -1,14 +1,10 @@
-﻿namespace GleanETL.Core.Columns
+﻿namespace Glean.Core.Columns
 {
-	public sealed class IgnoredColumn : BaseColumn
+    public sealed class IgnoredColumn : BaseColumn
     {
-        #region Constructors
-
         public IgnoredColumn()
             : base(null, null)
         {
         }
-
-        #endregion Constructors
     }
 }

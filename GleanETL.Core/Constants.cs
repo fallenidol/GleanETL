@@ -1,13 +1,11 @@
-﻿namespace GleanETL.Core
+﻿namespace Glean.Core
 {
-    internal class Constants
+    internal static class Constants
     {
-        #region Fields
+        public const string DoubleSpace = "  ";
 
-        public static string DoubleSpace = "  ";
-        public static string SingleSpace = " ";
-        public static string RecordLineDelimiter = "~";
+        public const string SingleSpace = " ";
 
-        #endregion Fields
+        public const string RecordLineDelimiter = "~";
     }
 }

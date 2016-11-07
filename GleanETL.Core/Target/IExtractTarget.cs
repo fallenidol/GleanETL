@@ -1,23 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace GleanETL.Core.Target
+﻿namespace Glean.Core.Target
 {
+    using System.Collections.Generic;
+
     public interface IExtractTarget
     {
-        #region Properties
-
         bool DeleteIfExists { get; }
 
-        #endregion Properties
-
-        #region Methods
-
         long CommitData(IEnumerable<object[]> dataRows);
-
-        #endregion Methods
-
-        #region Other
-
-        #endregion Other
     }
 }

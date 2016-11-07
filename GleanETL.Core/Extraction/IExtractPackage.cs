@@ -1,11 +1,7 @@
-﻿namespace GleanETL.Core.Extraction
+﻿namespace Glean.Core.Extraction
 {
     public interface IExtractPackage
     {
-        #region Methods
-
         IExtract GetExtract();
-
-        #endregion Methods
     }
 }

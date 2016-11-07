@@ -1,19 +1,13 @@
-﻿using System;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-
-namespace GleanETL.Core
+﻿namespace Glean.Core
 {
+    using System;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Linq;
+    using System.Text;
+
     internal class SqlTableCreator
     {
-        #region Fields
-
-        #endregion Fields
-
-        #region Constructors
-
         public SqlTableCreator(SqlConnection connection)
             : this(connection, null)
         {
@@ -21,23 +15,15 @@ namespace GleanETL.Core
 
         public SqlTableCreator(SqlConnection connection, SqlTransaction transaction)
         {
-            Connection = connection;
-            Transaction = transaction;
+            this.Connection = connection;
+            this.Transaction = transaction;
         }
-
-        #endregion Constructors
-
-        #region Properties
 
         public SqlConnection Connection { get; set; }
 
         public string DestinationTableName { get; set; }
 
         public SqlTransaction Transaction { get; set; }
-
-        #endregion Properties
-
-        #region Methods
 
         public static string GetCreateFromDataTableSql(string tableName, DataTable table, string schema = "dbo")
         {
@@ -77,12 +63,14 @@ namespace GleanETL.Core
             // columns
             foreach (DataRow column in schema.Rows)
             {
-                if (!(schema.Columns.Contains("IsHidden") && (bool) column["IsHidden"]))
+                if (!(schema.Columns.Contains("IsHidden") && (bool)column["IsHidden"]))
                 {
                     sql += "\t[" + column["ColumnName"] + "] " + SqlGetType(column);
 
-                    if (schema.Columns.Contains("AllowDBNull") && (bool) column["AllowDBNull"] == false)
+                    if (schema.Columns.Contains("AllowDBNull") && ((bool)column["AllowDBNull"] == false))
+                    {
                         sql += " NOT NULL";
+                    }
 
                     sql += ",\n";
                 }
@@ -91,12 +79,11 @@ namespace GleanETL.Core
 
             // primary keys
             var pk = ", CONSTRAINT PK_" + tableName + " PRIMARY KEY CLUSTERED (";
-            var hasKeys = (primaryKeys != null && primaryKeys.Length > 0);
+            var hasKeys = (primaryKeys != null) && (primaryKeys.Length > 0);
             if (hasKeys)
             {
                 // user defined keys
-                pk = primaryKeys.Aggregate(pk,
-                    (current, key) => current + (schema.Rows[key]["ColumnName"].ToString() + ", "));
+                pk = primaryKeys.Aggregate(pk, (current, key) => current + schema.Rows[key]["ColumnName"].ToString() + ", ");
             }
             else
             {
@@ -106,7 +93,10 @@ namespace GleanETL.Core
                 hasKeys = keys.Length > 0;
             }
             pk = pk.TrimEnd(',', ' ', '\n') + ")\n";
-            if (hasKeys) sql += pk;
+            if (hasKeys)
+            {
+                sql += pk;
+            }
 
             sql += ")";
 
@@ -115,9 +105,7 @@ namespace GleanETL.Core
 
         public static string[] GetPrimaryKeys(DataTable schema)
         {
-            return (from DataRow column in schema.Rows
-                where schema.Columns.Contains("IsKey") && (bool) column["IsKey"]
-                select column["ColumnName"].ToString()).ToArray();
+            return (from DataRow column in schema.Rows where schema.Columns.Contains("IsKey") && (bool)column["IsKey"] select column["ColumnName"].ToString()).ToArray();
         }
 
         // Return T-SQL data type definition, based on schema definition for a column
@@ -131,7 +119,9 @@ namespace GleanETL.Core
                     return "NVARCHAR(MAX)";
                 case "System.Decimal":
                     if (numericScale > 0)
+                    {
                         return "Decimal(17," + numericScale + ")";
+                    }
                     return "Decimal";
 
                 case "System.Double":
@@ -158,14 +148,15 @@ namespace GleanETL.Core
                     return "UNIQUEIDENTIFIER";
 
                 default:
-                    throw new Exception(type + " not implemented.");
+                    throw new NotImplementedException(type + " not implemented.");
             }
         }
 
         // Overload based on row from schema table
         public static string SqlGetType(DataRow schemaRow)
         {
-            return SqlGetType(schemaRow["DataType"],
+            return SqlGetType(
+                schemaRow["DataType"],
                 int.Parse(schemaRow["ColumnSize"].ToString()),
                 int.Parse(schemaRow["NumericPrecision"].ToString()),
                 int.Parse(schemaRow["NumericScale"].ToString()));
@@ -179,7 +170,7 @@ namespace GleanETL.Core
 
         public object Create(DataTable schema)
         {
-            return Create(schema, null);
+            return this.Create(schema, null);
         }
 
         public object Create(DataTable schema, int numKeys)
@@ -189,35 +180,41 @@ namespace GleanETL.Core
             {
                 primaryKeys[i] = i;
             }
-            return Create(schema, primaryKeys);
+            return this.Create(schema, primaryKeys);
         }
 
         public object Create(DataTable schema, int[] primaryKeys)
         {
-            var sql = GetCreateSql(DestinationTableName, schema, primaryKeys);
+            var sql = GetCreateSql(this.DestinationTableName, schema, primaryKeys);
 
             SqlCommand cmd;
-            if (Transaction != null && Transaction.Connection != null)
-                cmd = new SqlCommand(sql, Connection, Transaction);
+            if ((this.Transaction != null) && (this.Transaction.Connection != null))
+            {
+                cmd = new SqlCommand(sql, this.Connection, this.Transaction);
+            }
             else
-                cmd = new SqlCommand(sql, Connection);
+            {
+                cmd = new SqlCommand(sql, this.Connection);
+            }
 
             return cmd.ExecuteNonQuery();
         }
 
         public object CreateFromDataTable(DataTable table)
         {
-            var sql = GetCreateFromDataTableSql(DestinationTableName, table);
+            var sql = GetCreateFromDataTableSql(this.DestinationTableName, table);
 
             SqlCommand cmd;
-            if (Transaction != null && Transaction.Connection != null)
-                cmd = new SqlCommand(sql, Connection, Transaction);
+            if ((this.Transaction != null) && (this.Transaction.Connection != null))
+            {
+                cmd = new SqlCommand(sql, this.Connection, this.Transaction);
+            }
             else
-                cmd = new SqlCommand(sql, Connection);
+            {
+                cmd = new SqlCommand(sql, this.Connection);
+            }
 
             return cmd.ExecuteNonQuery();
         }
-
-        #endregion Methods
     }
 }

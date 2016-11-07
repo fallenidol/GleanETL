@@ -1,23 +1,12 @@
-﻿namespace GleanETL.Core.Columns
+﻿namespace Glean.Core.Columns
 {
-	public class DerivedStringColumn : DerivedColumn<string>
-	{
-		#region Constructors
+    public class DerivedStringColumn : DerivedColumn<string>
+    {
+        public DerivedStringColumn(string columnName = null)
+            : base(columnName)
+        {
+        }
 
-		public DerivedStringColumn(string columnName = null)
-			: base(columnName)
-		{
-		}
-
-		#endregion Constructors
-
-		#region Properties
-
-		public int DetectedMaxLength
-		{
-			get; internal set;
-		}
-
-		#endregion Properties
-	}
+        public int DetectedMaxLength { get; internal set; }
+    }
 }

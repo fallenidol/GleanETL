@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using GleanETL.Core.Columns;
-using GleanETL.Core.Extraction;
-using GleanETL.Core.Source;
-
-namespace GleanETL.Core
+﻿namespace Glean.Core
 {
-    public class HelperFunctions
-    {
-        #region Methods
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
 
-        public static Func<TextFileRecord, IEnumerable<TextFileRecordLine>> CharacterDelimitedSingleLineRecordParser(
-            char inputDelimiter)
+    using Glean.Core.Columns;
+    using Glean.Core.Extraction;
+    using Glean.Core.Source;
+
+    public static class HelperFunctions
+    {
+        public static Func<TextFileRecord, IEnumerable<TextFileRecordLine>> CharacterDelimitedSingleLineRecordParser(char inputDelimiter)
         {
             return record =>
             {
@@ -26,7 +24,7 @@ namespace GleanETL.Core
                     if (line != null)
                     {
                         var values = line.OriginalLine.Split(inputDelimiter);
-                        returnLines = new List<TextFileRecordLine> { TextFileRecordLine.New(String.Join(Constants.RecordLineDelimiter, values), Constants.RecordLineDelimiter) };
+                        returnLines = new List<TextFileRecordLine> { TextFileRecordLine.New(string.Join(Constants.RecordLineDelimiter, values), Constants.RecordLineDelimiter) };
                     }
                 }
                 else
@@ -40,10 +38,7 @@ namespace GleanETL.Core
 
         public static Func<string, bool> LineDoesNotStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {
-            return
-                line =>
-                    line.Length >= numberOfCharsToTest &&
-                    !line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
+            return line => (line.Length >= numberOfCharsToTest) && !line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
         }
 
         public static Func<string, bool> LineStartsWithDate(int numberOfCharsToTest, string[] formats)
@@ -67,19 +62,13 @@ namespace GleanETL.Core
 
             return
                 line =>
-                    line.Length >= numberOfCharsToTest &&
-                    int.TryParse(line.Substring(0, numberOfCharsToTest).Trim(), NumberStyles.Integer,
-                        CultureInfo.InvariantCulture, out xx);
+                    (line.Length >= numberOfCharsToTest) &&
+                    int.TryParse(line.Substring(0, numberOfCharsToTest).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out xx);
         }
 
         public static Func<string, bool> LineStartsWithStringValue(int numberOfCharsToTest, string stringToMatch)
         {
-            return
-                line =>
-                    line.Length >= numberOfCharsToTest &&
-                    line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
+            return line => (line.Length >= numberOfCharsToTest) && line.Substring(0, numberOfCharsToTest).Trim().Equals(stringToMatch);
         }
-
-        #endregion Methods
     }
 }

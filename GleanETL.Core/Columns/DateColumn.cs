@@ -1,49 +1,27 @@
-namespace GleanETL.Core.Columns
+namespace Glean.Core.Columns
 {
     using System;
-    using System.Diagnostics;
     using System.Globalization;
 
-    using GleanETL.Core.Enumerations;
+    using Glean.Core.Enumerations;
 
     public class DateColumn : BaseColumn<DateTime?>
     {
-        #region Fields
-
         private const string DefaultOutputFormat = "yyyy-MM-dd";
 
-        private readonly string[] _inputFormats;
-        private readonly DateTime? _invalidDateValue;
-        private readonly string _outputFormat;
+        private readonly string[] inputFormats;
 
-        private static DateColumn _dc = new DateColumn();
+        private readonly DateTime? invalidDateValue;
 
-        #endregion Fields
-
-        #region Constructors
-
-        public DateColumn(string columnName = null, string[] inputFormats = null,
-            string outputFormat = DefaultOutputFormat,
-            DateTime? invalidDateValue = null)
+        public DateColumn(string columnName = null, string[] inputFormats = null, string outputFormat = DefaultOutputFormat, DateTime? invalidDateValue = null)
             : base(columnName)
         {
-            _invalidDateValue = invalidDateValue;
-            _inputFormats = inputFormats ?? GetStandardDateFormats();
-            _outputFormat = outputFormat;
+            this.invalidDateValue = invalidDateValue;
+            this.inputFormats = inputFormats ?? GetStandardDateFormats();
+            this.OutputFormat = outputFormat;
         }
 
-        #endregion Constructors
-
-        #region Properties
-
-        public string OutputFormat
-        {
-            get { return _outputFormat; }
-        }
-
-        #endregion Properties
-
-        #region Methods
+        public string OutputFormat { get; }
 
         public static string[] GetStandardDateFormats(StandardDateFormats format = StandardDateFormats.Default)
         {
@@ -55,37 +33,11 @@ namespace GleanETL.Core.Columns
                 case StandardDateFormats.Australia:
                 case StandardDateFormats.UnitedKingdom:
                     formats = new[]
-                    {
-                        "dd/MM/yyyy", 
-                        "d/M/yyyy", 
-                        "dd/M/yyyy", 
-                        "d/MM/yyyy",
-                        "ddMMyyyy", 
-                        "dd/M/yy", 
-                        "d/MM/yy", 
-                        "d/M/yy",
-                        "yyyy-MM-dd",
-                        "yyyy-M-d",
-                        "yyyy-MM-d",
-                        "yyyy-M-dd"
-                    };
+                        { "dd/MM/yyyy", "d/M/yyyy", "dd/M/yyyy", "d/MM/yyyy", "ddMMyyyy", "dd/M/yy", "d/MM/yy", "d/M/yy", "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
                     break;
                 case StandardDateFormats.UnitedStates:
                     formats = new[]
-                    {
-                        "MM/dd/yyyy", 
-                        "M/d/yyyy", 
-                        "M/dd/yyyy", 
-                        "MM/d/yyyy",
-                        "MMddyyyy", 
-                        "M/dd/yy", 
-                        "MM/d/yy", 
-                        "M/d/yy",
-                        "yyyy-MM-dd",
-                        "yyyy-M-d",
-                        "yyyy-MM-d",
-                        "yyyy-M-dd"
-                    };
+                        { "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy", "MMddyyyy", "M/dd/yy", "MM/d/yy", "M/d/yy", "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
                     break;
             }
             return formats;
@@ -94,23 +46,22 @@ namespace GleanETL.Core.Columns
         //[DebuggerHidden]
         public static DateTime? ParseValue(string value, string[] validFormats, DateTime? invalidDateValue = null)
         {
-            DateTime? result = invalidDateValue;
+            var result = invalidDateValue;
 
             if (value != null)
             {
-                var trimmedValue = value.TrimAndRemoveConsecutiveWhitespace();
+                var trimmedValue = value.TrimAndRemoveConsecutiveWhiteSpace();
 
                 if (trimmedValue.Length > 0)
                 {
                     DateTime temp;
-                    if (DateTime.TryParseExact(trimmedValue, validFormats, CultureInfo.InvariantCulture,
-                        DateTimeStyles.AssumeLocal, out temp))
+                    if (DateTime.TryParseExact(trimmedValue, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out temp))
                     {
                         result = temp;
                     }
                     else
                     {
-                        throw new ParseException(value, typeof (DateTime));
+                        throw new ParseException(value, typeof(DateTime));
                     }
                 }
             }
@@ -122,31 +73,29 @@ namespace GleanETL.Core.Columns
         {
             try
             {
-                var parsedValue = PreParseValue(value);
+                var parsedValue = this.PreParseValue(value);
 
-                return ParseValue(parsedValue, _inputFormats);
+                return ParseValue(parsedValue, this.inputFormats);
             }
             catch (ParseException pe)
             {
-                OnParseError(pe.ValueBeingParsed, typeof(DateTime), pe.Message);
+                this.OnParseError(pe.ValueBeingParsed, typeof(DateTime), pe.Message);
 
-                return _invalidDateValue;
+                return this.invalidDateValue;
             }
         }
 
         public string ParseValueAndFormat(string value)
         {
-            var dt = ParseValue(value);
+            var dt = this.ParseValue(value);
             string stringValue = null;
 
             if (dt.HasValue)
             {
-                stringValue = dt.Value.ToString(_outputFormat);
+                stringValue = dt.Value.ToString(this.OutputFormat);
             }
 
             return stringValue;
         }
-
-        #endregion Methods
     }
 }

@@ -1,32 +1,26 @@
-﻿namespace GleanETL.Test
+﻿namespace Glean.Test
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
 
-    using GleanETL.Core.Columns;
-    using GleanETL.Core.Extraction;
-    using GleanETL.Core.Source;
-    using GleanETL.Core.Target;
+    using Glean.Core.Columns;
+    using Glean.Core.EventArgs;
+    using Glean.Core.Extraction;
+    using Glean.Core.Source;
+    using Glean.Core.Target;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class IgnoredColumnTests
     {
-        #region Fields
-
-        private static string _testResultsDirectoryPath = null;
-
-        #endregion Fields
-
-        #region Methods
+        private static string testResultsDirectoryPath;
 
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var di = Directory.GetParent(_testResultsDirectoryPath);
+            var di = Directory.GetParent(testResultsDirectoryPath);
             if (di.Exists && di.Name.Equals("TestResults", StringComparison.InvariantCultureIgnoreCase))
             {
                 Directory.Delete(di.FullName, true);
@@ -36,7 +30,7 @@
         [ClassInitialize]
         public static void ClassInitialize(TestContext ctx)
         {
-            _testResultsDirectoryPath = ctx.TestDir;
+            testResultsDirectoryPath = ctx.TestDir;
         }
 
         [TestMethod]
@@ -46,26 +40,21 @@
             var data = new[] { "r1c1,r1c2,r1c3,r1c4,r1c5", "r2c1,r2c2,r2c3,r2c4,r2c5" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), throwParseErrors: true)
-            {
-                SplitLineFunc = line => line.OriginalLine.Split(',')
-            };
+            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
 
-            extraction.DataParseError += DataParseError;
-            extraction.ExtractComplete += ExtractComplete;
+            extraction.DataParseError += this.DataParseError;
+            extraction.ExtractComplete += this.ExtractComplete;
             extraction.ExtractToTarget();
         }
 
-        private void DataParseError(object sender, Core.EventArgs.ParseErrorEventArgs e)
+        private void DataParseError(object sender, ParseErrorEventArgs e)
         {
             Trace.WriteLine(string.Format("PARSE ERROR: {0}, {1}", e.ValueBeingParsed ?? string.Empty, e.Message));
         }
 
-        private void ExtractComplete(object sender, Core.EventArgs.ExtractCompleteArgs e)
+        private void ExtractComplete(object sender, ExtractCompleteArgs e)
         {
-            Trace.WriteLine(string.Format("EXTRACTION COMPLETE!!: {0}", e.ToString()));
+            Trace.WriteLine(string.Format("EXTRACTION COMPLETE!!: {0}", e));
         }
-
-        #endregion Methods
     }
 }

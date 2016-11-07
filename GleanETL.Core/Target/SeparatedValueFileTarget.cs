@@ -1,32 +1,31 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Text;
-
-namespace GleanETL.Core.Target
+﻿namespace Glean.Core.Target
 {
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Text;
+
     public class SeparatedValueFileTarget : BaseExtractTarget
     {
-        #region Constructors
+        private bool firstSave = true;
 
-        public SeparatedValueFileTarget(string targetFilePath, string columnDelimiter = ",",
-            bool deleteTargetIfExists = true)
+        public SeparatedValueFileTarget(string targetFilePath, string columnDelimiter = ",", bool deleteTargetIfExists = true)
             : base(deleteTargetIfExists)
         {
-            _targetFilePath = targetFilePath;
-            _columnDelimiter = columnDelimiter;
+            this.TargetFilePath = targetFilePath;
+            this.ColumnDelimiter = columnDelimiter;
         }
 
-        #endregion Constructors
+        public string ColumnDelimiter { get; }
 
-        #region Methods
+        public string TargetFilePath { get; }
 
         public override long CommitData(IEnumerable<object[]> dataRows)
         {
-            if (_firstSave && DeleteIfExists && File.Exists(TargetFilePath))
+            if (this.firstSave && this.DeleteIfExists && File.Exists(this.TargetFilePath))
             {
-                File.Delete(TargetFilePath);
+                File.Delete(this.TargetFilePath);
             }
-            _firstSave = false;
+            this.firstSave = false;
 
             long rowCount = 0;
             var rows = new StringBuilder();
@@ -34,50 +33,25 @@ namespace GleanETL.Core.Target
             foreach (var row in dataRows)
             {
                 //var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
-                var line = string.Join(ColumnDelimiter, row);
+                var line = string.Join(this.ColumnDelimiter, row);
 
                 rows.AppendLine(line);
                 rowCount++;
 
-                if (rowCount%10000 == 0)
+                if (rowCount % 10000 == 0)
                 {
-                    File.AppendAllText(TargetFilePath, rows.ToString());
+                    File.AppendAllText(this.TargetFilePath, rows.ToString());
                     rows.Clear();
                 }
             }
 
             if (rows.Length > 0)
             {
-                File.AppendAllText(TargetFilePath, rows.ToString());
+                File.AppendAllText(this.TargetFilePath, rows.ToString());
                 rows.Clear();
             }
 
             return rowCount;
         }
-
-        #endregion Methods
-
-        #region Fields
-
-        private readonly string _columnDelimiter;
-        private readonly string _targetFilePath;
-
-        private bool _firstSave = true;
-
-        #endregion Fields
-
-        #region Properties
-
-        public string ColumnDelimiter
-        {
-            get { return _columnDelimiter; }
-        }
-
-        public string TargetFilePath
-        {
-            get { return _targetFilePath; }
-        }
-
-        #endregion Properties
     }
 }

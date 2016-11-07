@@ -1,40 +1,27 @@
-using System.Collections.Generic;
-
-namespace GleanETL.Core.Source
+namespace Glean.Core.Source
 {
+    using System.Collections.Generic;
+
     public class TextFileRecord
     {
-        #region Fields
-
-        private readonly List<TextLine> _fileLines;
-
-        #endregion Fields
-
-        #region Constructors
+        private readonly List<TextLine> fileLines;
 
         public TextFileRecord()
         {
-            _fileLines = new List<TextLine>();
+            this.fileLines = new List<TextLine>();
         }
-
-        #endregion Constructors
-
-        #region Properties
 
         public IEnumerable<TextLine> FileLines
         {
-            get { return _fileLines; }
+            get
+            {
+                return this.fileLines;
+            }
         }
-
-        #endregion Properties
-
-        #region Methods
 
         public void AddFileLine(TextLine textFileLine)
         {
-            _fileLines.Add(textFileLine);
+            this.fileLines.Add(textFileLine);
         }
-
-        #endregion Methods
     }
 }

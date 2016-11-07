@@ -1,23 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using GleanETL.Core.Columns;
-
-namespace GleanETL.Core.Target
+namespace Glean.Core.Target
 {
+    using System.Collections.Generic;
+
+    using Glean.Core.Columns;
+
     public abstract class BaseExtractTarget : IExtractTarget
     {
-        #region Constructors
-
         protected BaseExtractTarget(bool deleteIfExists = false)
         {
-            ThrowMultipleEnumerationError = true;
-            DeleteIfExists = deleteIfExists;
+            this.ThrowMultipleEnumerationError = true;
+            this.DeleteIfExists = deleteIfExists;
         }
 
-        #endregion Constructors
+        public bool ThrowMultipleEnumerationError { get; private set; }
 
-        #region Methods
+        internal BaseColumn[] Columns { get; set; }
 
         //protected object[] ValuesWithoutIgnoredColumns(object[] row)
         //{
@@ -37,15 +34,6 @@ namespace GleanETL.Core.Target
 
         public abstract long CommitData(IEnumerable<object[]> dataRows);
 
-        #endregion Methods
-
-        #region Properties
-
         public bool DeleteIfExists { get; private set; }
-        public bool ThrowMultipleEnumerationError { get; private set; }
-
-        internal BaseColumn[] Columns { get; set; }
-
-        #endregion Properties
     }
 }

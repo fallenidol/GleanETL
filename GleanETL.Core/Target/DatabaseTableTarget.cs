@@ -1,73 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using GleanETL.Core.Columns;
-
-namespace GleanETL.Core.Target
+﻿namespace Glean.Core.Target
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Globalization;
+    using System.Linq;
+    using System.Text;
+
+    using Glean.Core.Columns;
+
     public class DatabaseTableTarget : BaseExtractTarget
     {
-        public override string ToString()
-        {
-            var sb = new SqlConnectionStringBuilder(this._connectionString);
-            return string.Format("{0}.{1}.{2}", sb.DataSource, sb.InitialCatalog, _table);
-        }
+        public static string UniqueRowIdColumnName = "RowIndex";
 
-        #region Constructors
+        private readonly string connectionString;
 
-        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo",
-            bool deleteTableIfExists = false)
+        private readonly string schema;
+
+        private readonly string table;
+
+        private bool firstTime = true;
+
+        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo", bool deleteTableIfExists = false)
             : base(deleteTableIfExists)
         {
-            _table = targetTable.Trim();
-            _schema = targetSchema.Trim();
+            this.table = targetTable.Trim();
+            this.schema = targetSchema.Trim();
 
             var csb = new SqlConnectionStringBuilder(connectionString) { PersistSecurityInfo = true };
 
-            _connectionString = csb.ConnectionString;
+            this.connectionString = csb.ConnectionString;
         }
 
-        #endregion Constructors
-
-        #region Fields
-
-        private readonly string _connectionString;
-        private readonly string _schema;
-        private readonly string _table;
-        public static string UniqueRowIdColumnName = "RowIndex";
-
-        private bool _firstTime = true;
-
-        #endregion Fields
-
-        #region Methods
+        public override string ToString()
+        {
+            var sb = new SqlConnectionStringBuilder(this.connectionString);
+            return string.Format("{0}.{1}.{2}", sb.DataSource, sb.InitialCatalog, this.table);
+        }
 
         public override long CommitData(IEnumerable<object[]> dataRows)
         {
-            const int batchSize = 10000;
+            const int BatchSize = 10000;
             long lineCount = 0;
 
-            using (var c = new SqlConnection(_connectionString))
+            using (var c = new SqlConnection(this.connectionString))
             {
                 c.Open();
 
-                if (DeleteIfExists && _firstTime)
+                if (this.DeleteIfExists && this.firstTime)
                 {
                     using (
                         var cmd =
                             new SqlCommand(
                                 string.Format(
+                                    CultureInfo.InvariantCulture,
                                     "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' and TABLE_SCHEMA='{0}') TRUNCATE TABLE {0}.{1};",
-                                    _schema, _table), c))
+                                    this.schema,
+                                    this.table),
+                                c))
                     {
                         cmd.ExecuteNonQuery();
                     }
                 }
 
-                using (var data = new DataTable(_table))
+                using (var data = new DataTable(this.table))
                 {
                     var ordinal = 0;
 
@@ -80,9 +77,17 @@ namespace GleanETL.Core.Target
                         AllowDBNull = false
                     };
 
-                    if (!DeleteIfExists)
+                    if (!this.DeleteIfExists)
                     {
-                        using (var cmd = new SqlCommand(string.Format("IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') SELECT Coalesce(MAX({2}),0)+1 FROM [{0}].[{1}]; ELSE SELECT 1;", _schema, _table, UniqueRowIdColumnName), c))
+                        using (
+                            var cmd =
+                                new SqlCommand(
+                                    string.Format(
+                                        "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') SELECT Coalesce(MAX({2}),0)+1 FROM [{0}].[{1}]; ELSE SELECT 1;",
+                                        this.schema,
+                                        this.table,
+                                        UniqueRowIdColumnName),
+                                    c))
                         {
                             rowId.AutoIncrementSeed = Convert.ToInt64(cmd.ExecuteScalar());
                         }
@@ -93,13 +98,13 @@ namespace GleanETL.Core.Target
 
                     data.PrimaryKey = new[] { rowId };
 
-                    foreach (var col in Columns)
+                    foreach (var col in this.Columns)
                     {
                         if (!(col is IgnoredColumn))
                         {
                             ordinal++;
 
-                            var dc = GetDataColumn(col);
+                            var dc = this.GetDataColumn(col);
                             data.Columns.Add(dc);
 
                             dc.SetOrdinal(ordinal);
@@ -116,28 +121,28 @@ namespace GleanETL.Core.Target
 
                             while (iterator.MoveNext())
                             {
-                                AddRow(row, data, batchSize, c, false);
+                                this.AddRow(row, data, BatchSize, c, false);
                                 lineCount++;
 
                                 row = iterator.Current;
                             }
 
-                            AddRow(row, data, batchSize, c, true);
+                            this.AddRow(row, data, BatchSize, c, true);
                             lineCount++;
                         }
                         else
                         {
-                            CreateSchema(data, c);
+                            this.CreateSchema(data, c);
                         }
                     }
 
                     if (lineCount > 0)
                     {
                         var sqlBuilder = new StringBuilder();
-                        foreach (var column in (Columns.OfType<BaseColumn>().Where(bc => bc is StringColumn || bc is DerivedStringColumn)))
+                        foreach (var column in this.Columns.OfType<BaseColumn>().Where(bc => bc is StringColumn || bc is DerivedStringColumn))
                         {
-                            int length = 255;
-                            int maxlength = -1;
+                            var length = 255;
+                            var maxlength = -1;
                             if (column is StringColumn)
                             {
                                 var sc = column as StringColumn;
@@ -153,13 +158,26 @@ namespace GleanETL.Core.Target
 
                             maxlength = length > 4000 ? -1 : length;
 
-                            if (DeleteIfExists)
+                            if (this.DeleteIfExists)
                             {
-                                sqlBuilder.AppendLine(string.Format("ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});", _schema, _table, column.ColumnName, maxlength != -1 ? length.ToString() : "MAX"));
+                                sqlBuilder.AppendLine(
+                                    string.Format(
+                                        "ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});",
+                                        this.schema,
+                                        this.table,
+                                        column.ColumnName,
+                                        maxlength != -1 ? length.ToString() : "MAX"));
                             }
                             else
                             {
-                                sqlBuilder.AppendLine(string.Format("IF ((SELECT MAX(LEN([{2}])) FROM [{0}].[{1}]) < {3}) ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({4});", _schema, _table, column.ColumnName, length, maxlength != -1 ? length.ToString() : "MAX"));
+                                sqlBuilder.AppendLine(
+                                    string.Format(
+                                        "IF ((SELECT MAX(LEN([{2}])) FROM [{0}].[{1}]) < {3}) ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({4});",
+                                        this.schema,
+                                        this.table,
+                                        column.ColumnName,
+                                        length,
+                                        maxlength != -1 ? length.ToString() : "MAX"));
                             }
                         }
                         using (var cmd = new SqlCommand(sqlBuilder.ToString(), c))
@@ -177,25 +195,25 @@ namespace GleanETL.Core.Target
         {
             //var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
 
-            var values = (new object[] { null }).Concat(row);
+            var values = new object[] { null }.Concat(row);
 
             if (data.Rows.Count <= batchSize)
             {
                 data.Rows.Add(values.ToArray());
             }
 
-            if (data.Rows.Count == batchSize || isLastRow)
+            if ((data.Rows.Count == batchSize) || isLastRow)
             {
-                if (_firstTime)
+                if (this.firstTime)
                 {
-                    CreateSchema(data, c);
+                    this.CreateSchema(data, c);
 
-                    _firstTime = false;
+                    this.firstTime = false;
                 }
 
                 using (var sbc = new SqlBulkCopy(c.ConnectionString, SqlBulkCopyOptions.TableLock))
                 {
-                    sbc.DestinationTableName = _schema + "." + _table;
+                    sbc.DestinationTableName = this.schema + "." + this.table;
                     sbc.WriteToServer(data);
                 }
 
@@ -209,9 +227,9 @@ namespace GleanETL.Core.Target
         {
             var schemaSql = @"
 sp_executesql @statement=N'
-IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + _schema + @"''))
+IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + this.schema + @"''))
     BEGIN
-        EXEC sp_executesql N''CREATE SCHEMA [" + _schema + @"] AUTHORIZATION [dbo]'';
+        EXEC sp_executesql N''CREATE SCHEMA [" + this.schema + @"] AUTHORIZATION [dbo]'';
     END
 '
 ";
@@ -221,15 +239,15 @@ IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + _schema + @"'')
                 cmd.ExecuteNonQuery();
             }
 
-            var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(_table, data, _schema);
+            var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(this.table, data, this.schema);
             var sql = createTableSql + "; ";
-            if (DeleteIfExists)
+            if (this.DeleteIfExists)
             {
                 sql = @"
 sp_executesql @statement=N'
-IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ''" + _schema + @"'' AND TABLE_NAME = ''" + _table + @"'')) 
+IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ''" + this.schema + @"'' AND TABLE_NAME = ''" + this.table + @"'')) 
     BEGIN 
-        DROP TABLE [" + _schema + @"].[" + _table + @"];
+        DROP TABLE [" + this.schema + @"].[" + this.table + @"];
     END;';
 
 " + sql;
@@ -242,12 +260,7 @@ IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA 
 
         private DataColumn GetDataColumn(BaseColumn col)
         {
-            var dc = new DataColumn(col.ColumnName)
-            {
-                Caption = col.ColumnDisplayName,
-                AllowDBNull = true,
-                ReadOnly = true
-            };
+            var dc = new DataColumn(col.ColumnName) { Caption = col.ColumnDisplayName, AllowDBNull = true, ReadOnly = true };
 
             var colType = col.GetType();
 
@@ -255,7 +268,7 @@ IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA 
             {
                 dc.DataType = typeof(string);
             }
-            else if (colType == typeof(StringNoWhitespaceColumn))
+            else if (colType == typeof(StringNoWhiteSpaceColumn))
             {
                 dc.DataType = typeof(string);
             }
@@ -283,7 +296,5 @@ IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA 
 
             return dc;
         }
-
-        #endregion Methods
     }
 }

@@ -1,114 +1,84 @@
-namespace GleanETL.Core.Columns
+namespace Glean.Core.Columns
 {
     using System;
     using System.Text;
 
-    using GleanETL.Core.Enumerations;
+    using Glean.Core.Enumerations;
 
     public class StringColumn : BaseColumn<string>
     {
-        #region Fields
+        private readonly bool encloseInDoubleQuotes;
 
-        private readonly bool _encloseInDoubleQuotes;
-        private readonly int _maxLength;
-        private readonly StringCapitalisation _stringCapitalisation;
-        private readonly WhitespaceHandling _whitespaceHandling;
-
-        #endregion Fields
-
-        #region Constructors
-
-        public StringColumn(string columnName = null, int maxLength = -1, bool encloseInDoubleQuotes = false,
-            WhitespaceHandling whitespaceHandling = WhitespaceHandling.TrimLeadingAndTrailingWhitespace,
+        public StringColumn(
+            string columnName = null,
+            int maxLength = -1,
+            bool encloseInDoubleQuotes = false,
+            WhiteSpaceHandling whitespaceHandling = WhiteSpaceHandling.TrimLeadingAndTrailingWhiteSpace,
             StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
             : base(columnName)
         {
-            _whitespaceHandling = whitespaceHandling;
-            _stringCapitalisation = stringCapitalisation;
-            _maxLength = maxLength;
-            _encloseInDoubleQuotes = encloseInDoubleQuotes;
-            DetectedMaxLength = -1;
+            this.WhiteSpaceHandling = whitespaceHandling;
+            this.StringCapitalisation = stringCapitalisation;
+            this.MaxLength = maxLength;
+            this.encloseInDoubleQuotes = encloseInDoubleQuotes;
+            this.DetectedMaxLength = -1;
         }
 
-        #endregion Constructors
+        public int DetectedMaxLength { get; internal set; }
 
-        #region Properties
+        public int MaxLength { get; }
 
-        public int DetectedMaxLength
-        {
-            get; internal set;
-        }
+        public StringCapitalisation StringCapitalisation { get; }
 
-        public int MaxLength
-        {
-            get { return _maxLength; }
-        }
-
-        public StringCapitalisation StringCapitalisation
-        {
-            get { return _stringCapitalisation; }
-        }
-
-        public WhitespaceHandling WhitespaceHandling
-        {
-            get { return _whitespaceHandling; }
-        }
-
-        #endregion Properties
-
-        #region Methods
+        public WhiteSpaceHandling WhiteSpaceHandling { get; }
 
         public override string ParseValue(string value)
         {
-            var returnValue = PreParseValue(value);
+            var returnValue = this.PreParseValue(value);
 
             if (value != null)
             {
-                if (StringCapitalisation == StringCapitalisation.ToCamelCase &&
-                    WhitespaceHandling == WhitespaceHandling.RemoveAllWhitespace)
+                if ((this.StringCapitalisation == StringCapitalisation.ToCamelCase) && (this.WhiteSpaceHandling == WhiteSpaceHandling.RemoveAllWhiteSpace))
                 {
-                    throw new InvalidOperationException(
-                        "ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
+                    throw new InvalidOperationException("ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
                 }
 
-                switch (StringCapitalisation)
+                switch (this.StringCapitalisation)
                 {
-                    case StringCapitalisation.ToLowerCase:
+                    case StringCapitalisation.ToLowercase:
                         returnValue = returnValue.ToLowerInvariant();
                         break;
-                    case StringCapitalisation.ToUpperCase:
+                    case StringCapitalisation.ToUppercase:
                         returnValue = returnValue.ToUpperInvariant();
                         break;
                     case StringCapitalisation.ToCamelCase:
-                        returnValue = ToPascalCase(returnValue);
+                        returnValue = this.ToPascalCase(returnValue);
                         break;
                 }
 
-                switch (WhitespaceHandling)
+                switch (this.WhiteSpaceHandling)
                 {
-                    case WhitespaceHandling.TrimLeadingAndTrailingWhitespace:
+                    case WhiteSpaceHandling.TrimLeadingAndTrailingWhiteSpace:
                         returnValue = returnValue.Trim();
                         break;
-                    case WhitespaceHandling.RemoveAllWhitespace:
-                        returnValue = returnValue.RemoveAllWhitespace();
+                    case WhiteSpaceHandling.RemoveAllWhiteSpace:
+                        returnValue = returnValue.RemoveAllWhiteSpace();
                         break;
-                    case WhitespaceHandling.TrimAndRemoveConsecutiveWhitespace:
-                        returnValue = returnValue.TrimAndRemoveConsecutiveWhitespace();
+                    case WhiteSpaceHandling.TrimAndRemoveConsecutiveWhiteSpace:
+                        returnValue = returnValue.TrimAndRemoveConsecutiveWhiteSpace();
                         break;
                 }
 
-                if (MaxLength > 0)
+                if (this.MaxLength > 0)
                 {
-                    returnValue = returnValue.Substring(0, Math.Min(MaxLength, returnValue.Length));
+                    returnValue = returnValue.Substring(0, Math.Min(this.MaxLength, returnValue.Length));
                 }
-                else if (MaxLength == 0)
+                else if (this.MaxLength == 0)
                 {
                     returnValue = string.Empty;
                 }
 
-                returnValue = _encloseInDoubleQuotes
-                    ? string.Format("\"{0}\"", returnValue)
-                    : returnValue.TrimStart('"').TrimEnd('"');
+                returnValue = this.encloseInDoubleQuotes ? string.Format("\"{0}\"", returnValue) : returnValue.TrimStart('"').TrimEnd('"');
             }
             return returnValue;
         }
@@ -117,7 +87,7 @@ namespace GleanETL.Core.Columns
         {
             if (input == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(input));
             }
 
             var returnValue = string.Empty;
@@ -125,11 +95,11 @@ namespace GleanETL.Core.Columns
             if (input.Trim().Length > 0)
             {
                 var sb = new StringBuilder();
-                var arrWords = input.Split(new[] {Constants.SingleSpace}, StringSplitOptions.None);
+                var arrWords = input.Split(new[] { Constants.SingleSpace }, StringSplitOptions.None);
 
                 foreach (var word in arrWords)
                 {
-                    sb.Append(Char.ToUpperInvariant(word[0]));
+                    sb.Append(char.ToUpperInvariant(word[0]));
                     sb.Append(word.Substring(1).ToLowerInvariant());
                     sb.Append(Constants.SingleSpace);
                 }
@@ -139,7 +109,5 @@ namespace GleanETL.Core.Columns
 
             return returnValue;
         }
-
-        #endregion Methods
     }
 }

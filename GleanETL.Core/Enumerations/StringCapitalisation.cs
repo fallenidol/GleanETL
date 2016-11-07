@@ -1,14 +1,13 @@
-namespace GleanETL.Core.Enumerations
+namespace Glean.Core.Enumerations
 {
-    #region Enumerations
-
     public enum StringCapitalisation
     {
         DefaultDoNothing = 0,
-        ToUpperCase = 1,
-        ToLowerCase = 2,
+
+        ToUppercase = 1,
+
+        ToLowercase = 2,
+
         ToCamelCase = 3
     }
-
-    #endregion Enumerations
 }

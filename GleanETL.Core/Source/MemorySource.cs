@@ -1,57 +1,29 @@
-﻿namespace GleanETL.Core.Source
+﻿namespace Glean.Core.Source
 {
     using System;
     using System.Collections.Generic;
 
     public class MemorySource : IExtractSource
     {
-        #region Fields
-
-        private readonly object _enumeratorLock1 = new object();
-
-        #endregion Fields
-
-        #region Constructors
+        private readonly object enumeratorLock1 = new object();
 
         public MemorySource(string displayName, IEnumerable<string> data)
         {
-            TakeLineIf = line => true;
+            this.TakeLineIf = line => true;
 
-            DisplayName = displayName;
-            Data = data;
+            this.DisplayName = displayName;
+            this.Data = data;
         }
 
-        #endregion Constructors
-
-        #region Properties
-
-        public string DisplayName
-        {
-            get;
-            private set;
-        }
-
-        public Func<string, bool> TakeLineIf
-        {
-            get; set;
-        }
-
-        private IEnumerable<string> Data
-        {
-            get; set;
-        }
-
-        #endregion Properties
-
-        #region Methods
+        private IEnumerable<string> Data { get; set; }
 
         public IEnumerator<TextLine> EnumerateLines()
         {
-            lock (_enumeratorLock1)
+            lock (this.enumeratorLock1)
             {
-                foreach (var line in Data)
+                foreach (var line in this.Data)
                 {
-                    if (TakeLineIf.Invoke(line))
+                    if (this.TakeLineIf.Invoke(line))
                     {
                         yield return new TextLine(line);
                     }
@@ -59,6 +31,8 @@
             }
         }
 
-        #endregion Methods
+        public string DisplayName { get; private set; }
+
+        public Func<string, bool> TakeLineIf { get; set; }
     }
 }

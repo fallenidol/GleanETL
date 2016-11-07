@@ -1,39 +1,23 @@
-﻿using System;
-
-namespace GleanETL.Core.Source
+﻿namespace Glean.Core.Source
 {
+    using System;
+
     public class TextLine
     {
-        #region Fields
-
-        private readonly string _originalLine;
-
-        #endregion Fields
-
-        #region Constructors
-
         public TextLine(string originalLineText)
         {
-            _originalLine = originalLineText;
+            this.OriginalLine = originalLineText;
         }
-
-        #endregion Constructors
-
-        #region Properties
 
         public int LineLength
         {
-            get { return _originalLine.Length; }
+            get
+            {
+                return this.OriginalLine.Length;
+            }
         }
 
-        public string OriginalLine
-        {
-            get { return _originalLine; }
-        }
-
-        #endregion Properties
-
-        #region Methods
+        public string OriginalLine { get; }
 
         public string[] Split(params int[] columnStartIndexes)
         {
@@ -49,19 +33,19 @@ namespace GleanETL.Core.Source
                     var nextPos = columnStartIndexes[nextIdx];
                     var length = nextPos - startPos;
 
-                    if (length < (LineLength - startPos))
+                    if (length < this.LineLength - startPos)
                     {
-                        values[i] = OriginalLine.Substring(startPos, length);
+                        values[i] = this.OriginalLine.Substring(startPos, length);
                     }
                     else
                     {
-                        values[i] = OriginalLine.Substring(startPos);
+                        values[i] = this.OriginalLine.Substring(startPos);
                         break;
                     }
                 }
                 else
                 {
-                    values[i] = OriginalLine.Substring(startPos);
+                    values[i] = this.OriginalLine.Substring(startPos);
                     break;
                 }
             }
@@ -71,14 +55,12 @@ namespace GleanETL.Core.Source
 
         public string SplitAndGetString(int index, char delimiter)
         {
-            return OriginalLine.Split(new[] {delimiter}, StringSplitOptions.None)[index];
+            return this.OriginalLine.Split(new[] { delimiter }, StringSplitOptions.None)[index];
         }
 
         public override string ToString()
         {
-            return _originalLine;
+            return this.OriginalLine;
         }
-
-        #endregion Methods
     }
 }

@@ -1,28 +1,14 @@
-﻿namespace GleanETL.Core.Source
+﻿namespace Glean.Core.Source
 {
-	using System;
-	using System.Collections.Generic;
+    using System;
+    using System.Collections.Generic;
 
-	public interface IExtractSource
-	{
-		#region Properties
+    public interface IExtractSource
+    {
+        string DisplayName { get; }
 
-		string DisplayName
-		{
-			get;
-		}
+        Func<string, bool> TakeLineIf { get; set; }
 
-		Func<string, bool> TakeLineIf
-		{
-			get; set;
-		}
-
-		#endregion Properties
-
-		#region Methods
-
-		IEnumerator<TextLine> EnumerateLines();
-
-		#endregion Methods
-	}
+        IEnumerator<TextLine> EnumerateLines();
+    }
 }

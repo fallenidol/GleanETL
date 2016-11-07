@@ -1,14 +1,13 @@
-namespace GleanETL.Core.Enumerations
+namespace Glean.Core.Enumerations
 {
-    #region Enumerations
-
-    public enum WhitespaceHandling
+    public enum WhiteSpaceHandling
     {
         DefaultDoNothing = 0,
-        TrimLeadingAndTrailingWhitespace = 1,
-        RemoveAllWhitespace = 2,
-        TrimAndRemoveConsecutiveWhitespace = 3
-    }
 
-    #endregion Enumerations
+        TrimLeadingAndTrailingWhiteSpace = 1,
+
+        RemoveAllWhiteSpace = 2,
+
+        TrimAndRemoveConsecutiveWhiteSpace = 3
+    }
 }

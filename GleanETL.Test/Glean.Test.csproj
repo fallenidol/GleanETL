@@ -7,8 +7,8 @@
     <ProjectGuid>{E6F9D675-AE8C-4C0A-9E2A-646DC20141C5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GleanETL.Test</RootNamespace>
-    <AssemblyName>GleanETL.Test</AssemblyName>
+    <RootNamespace>Glean.Test</RootNamespace>
+    <AssemblyName>Glean.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -46,9 +46,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GleanETL.Core\GleanETL.Core.csproj">
+    <ProjectReference Include="..\GleanETL.Core\Glean.Core.csproj">
       <Project>{cfedd563-fdd3-4316-bef7-1456d61c76d9}</Project>
-      <Name>GleanETL.Core</Name>
+      <Name>Glean.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

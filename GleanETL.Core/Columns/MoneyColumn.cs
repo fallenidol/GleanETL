@@ -1,4 +1,4 @@
-namespace GleanETL.Core.Columns
+namespace Glean.Core.Columns
 {
     using System;
     using System.Globalization;
@@ -6,28 +6,21 @@ namespace GleanETL.Core.Columns
 
     public class MoneyColumn : BaseColumn<decimal?>
     {
-        #region Constructors
-
         public MoneyColumn(string columnName = null)
             : base(columnName)
         {
         }
 
-        #endregion Constructors
-
-        #region Methods
-
         public override decimal? ParseValue(string value)
         {
-            var parsedValue = PreParseValue(value);
+            var parsedValue = this.PreParseValue(value);
 
             decimal? result = null;
 
-            var hex = ToHex(parsedValue.Trim())
-                .Replace("24", string.Empty) // $
-                .Replace("a5", string.Empty) // ¥
-                .Replace("a3", string.Empty) // £
-                .Replace("20ac", string.Empty) // €
+            var hex = ToHex(parsedValue.Trim()).Replace("24", string.Empty) // $
+                    .Replace("a5", string.Empty) // ¥
+                    .Replace("a3", string.Empty) // £
+                    .Replace("20ac", string.Empty) // €
                 ;
             var parsedValueWithoutCurrencySymbol = FromHex(hex);
 
@@ -39,7 +32,7 @@ namespace GleanETL.Core.Columns
             }
             else
             {
-                OnParseError(value, typeof(decimal));
+                this.OnParseError(value, typeof(decimal));
             }
 
             return result;
@@ -48,26 +41,24 @@ namespace GleanETL.Core.Columns
         private static string FromHex(string hex)
         {
             hex = hex.Replace("-", "");
-            byte[] raw = new byte[hex.Length / 2];
-            for (int i = 0; i < raw.Length; i++)
+            var raw = new byte[hex.Length / 2];
+            for (var i = 0; i < raw.Length; i++)
             {
                 raw[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
             }
-            return Encoding.ASCII.GetString(raw); ;
+            return Encoding.ASCII.GetString(raw);
         }
 
         private static string ToHex(string input)
         {
-            char[] values = input.ToCharArray();
+            var values = input.ToCharArray();
             string hexOutput = null;
-            foreach (char letter in values)
+            foreach (var letter in values)
             {
-                int value = Convert.ToInt32(letter);
-                hexOutput += String.Format("{0:X}", value);
+                var value = Convert.ToInt32(letter);
+                hexOutput += string.Format("{0:X}", value);
             }
             return hexOutput.ToLowerInvariant();
         }
-
-        #endregion Methods
     }
 }

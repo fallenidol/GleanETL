@@ -1,30 +1,29 @@
-﻿using System;
-
-namespace GleanETL.Core.EventArgs
+﻿namespace Glean.Core.EventArgs
 {
-    public class ParseErrorEventArgs : System.EventArgs
+    using System;
+
+    public class ParseErrorEventArgs : EventArgs
     {
-        public string ValueBeingParsed { get; private set; }
-        public Exception Exception { get; private set; }
-        public string Message { get; private set; }
-        public Type TargetType { get; private set; }
-
-        #region Constructors
-
         public ParseErrorEventArgs(string valueBeingParsed, string message, Type targetType)
         {
-            Message = message;
-            ValueBeingParsed = valueBeingParsed;
-            TargetType = targetType;
+            this.Message = message;
+            this.ValueBeingParsed = valueBeingParsed;
+            this.TargetType = targetType;
         }
 
         public ParseErrorEventArgs(string valueBeingParsed, Exception exception, Type targetType)
         {
-            Exception = exception;
-            ValueBeingParsed = valueBeingParsed;
-            TargetType = targetType;
+            this.Exception = exception;
+            this.ValueBeingParsed = valueBeingParsed;
+            this.TargetType = targetType;
         }
 
-        #endregion Constructors
+        public string ValueBeingParsed { get; private set; }
+
+        public Exception Exception { get; private set; }
+
+        public string Message { get; private set; }
+
+        public Type TargetType { get; private set; }
     }
 }

@@ -1,42 +1,31 @@
-namespace GleanETL.Core.Columns
+namespace Glean.Core.Columns
 {
     using System.Globalization;
 
     public class IntColumn : BaseColumn<int?>
     {
-        #region Constructors
-
         public IntColumn(string columnName = null)
             : base(columnName)
         {
         }
 
-        #endregion Constructors
-
-        #region Methods
-
         public override int? ParseValue(string value)
         {
-            var parsedValue = PreParseValue(value);
+            var parsedValue = this.PreParseValue(value);
 
             int? result = null;
 
             int temp;
-            if (!string.IsNullOrWhiteSpace(parsedValue) &&
-                int.TryParse(
-                    parsedValue.Trim(),
-                    NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
+            if (!string.IsNullOrWhiteSpace(parsedValue) && int.TryParse(parsedValue.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }
             else
             {
-                OnParseError(value, typeof(int));
+                this.OnParseError(value, typeof(int));
             }
 
             return result;
         }
-
-        #endregion Methods
     }
 }

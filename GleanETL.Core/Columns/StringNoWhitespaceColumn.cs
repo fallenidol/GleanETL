@@ -1,17 +1,17 @@
-namespace GleanETL.Core.Columns
+namespace Glean.Core.Columns
 {
-    using GleanETL.Core.Enumerations;
+    using Glean.Core.Enumerations;
 
-    public class StringNoWhitespaceColumn : StringColumn
+    public class StringNoWhiteSpaceColumn : StringColumn
     {
-        #region Constructors
-
-        public StringNoWhitespaceColumn(string columnName = null, int maxLength = -1, bool encloseInDoubleQuotes = false)
-            : base(columnName, maxLength, encloseInDoubleQuotes, WhitespaceHandling.RemoveAllWhitespace,
-                StringCapitalisation.DefaultDoNothing)
+        public StringNoWhiteSpaceColumn()
+    : base(null, -1, false, WhiteSpaceHandling.RemoveAllWhiteSpace, StringCapitalisation.DefaultDoNothing)
         {
         }
 
-        #endregion Constructors
+        public StringNoWhiteSpaceColumn(string columnName = null, int maxLength = -1, bool encloseInDoubleQuotes = false)
+            : base(columnName, maxLength, encloseInDoubleQuotes, WhiteSpaceHandling.RemoveAllWhiteSpace, StringCapitalisation.DefaultDoNothing)
+        {
+        }
     }
 }

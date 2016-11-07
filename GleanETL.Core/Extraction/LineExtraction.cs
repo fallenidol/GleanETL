@@ -1,107 +1,91 @@
-﻿namespace GleanETL.Core.Extraction
+﻿namespace Glean.Core.Extraction
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
 
-    using GleanETL.Core.Columns;
-    using GleanETL.Core.Source;
-    using GleanETL.Core.Target;
+    using Glean.Core.Columns;
+    using Glean.Core.Source;
+    using Glean.Core.Target;
 
     public class LineExtraction<TExtractTarget> : Extract<TExtractTarget>
         where TExtractTarget : BaseExtractTarget
     {
-        #region Fields
+        private readonly object enumeratorLock = new object();
 
-        private readonly object _enumeratorLock = new object();
+        private long fileLinesRead;
 
-        private long _fileLinesRead;
-        private long _linesExtracted;
-        private bool _mutipleEnumeration = false;
+        private long linesExtracted;
 
-        #endregion Fields
-
-        #region Constructors
+        private bool mutipleEnumeration;
 
         public LineExtraction(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
             : base(columns, source, target, throwParseErrors)
         {
-            SplitLineFunc = line => line.OriginalLine.Split(new[] { ',' }, StringSplitOptions.None);
+            this.SplitLineFunc = line => line.OriginalLine.Split(new[] { ',' }, StringSplitOptions.None);
         }
 
-        #endregion Constructors
-
-        #region Properties
-
-        public Func<TextLine, string[]> SplitLineFunc
-        {
-            get; set;
-        }
-
-        #endregion Properties
-
-        #region Methods
+        public Func<TextLine, string[]> SplitLineFunc { get; set; }
 
         public override void ExtractToTarget()
         {
-            _mutipleEnumeration = false;
+            this.mutipleEnumeration = false;
             var sw = Stopwatch.StartNew();
-            var linesToSave = EnumerateSourceLines();
+            var linesToSave = this.EnumerateSourceLines();
 
             var extractDurationMs = sw.ElapsedMilliseconds;
 
-            var dataWithoutIgnoredColumns = Enumerable.Select<object[], object[]>(linesToSave, (o, i) => ValuesWithoutIgnoredColumns(o));
+            var dataWithoutIgnoredColumns = linesToSave.Select((o, i) => this.ValuesWithoutIgnoredColumns(o));
 
-            var lineCount = Target.CommitData(dataWithoutIgnoredColumns);
+            var lineCount = this.Target.CommitData(dataWithoutIgnoredColumns);
 
             sw.Stop();
 
             var commitDurationMs = sw.ElapsedMilliseconds - extractDurationMs;
 
-            OnExtractComplete(_fileLinesRead, _linesExtracted, lineCount, extractDurationMs, commitDurationMs,
-                sw.ElapsedMilliseconds);
+            this.OnExtractComplete(this.fileLinesRead, this.linesExtracted, lineCount, extractDurationMs, commitDurationMs, sw.ElapsedMilliseconds);
         }
 
         private IEnumerable<object[]> EnumerateSourceLines()
         {
-            lock (_enumeratorLock)
+            lock (this.enumeratorLock)
             {
-                if (ThrowMultipleEnumerationError)
+                if (this.ThrowMultipleEnumerationError)
                 {
-                    if (_mutipleEnumeration)
+                    if (this.mutipleEnumeration)
                     {
                         throw new Exception("Multiple enumeration of data!");
                     }
                 }
 
-                var enumerator = Source.EnumerateLines();
+                var enumerator = this.Source.EnumerateLines();
 
                 while (enumerator.MoveNext())
                 {
-                    _fileLinesRead++;
+                    this.fileLinesRead++;
 
                     var line = enumerator.Current;
-                    var rawLineValues = SplitLineFunc(line);
+                    var rawLineValues = this.SplitLineFunc(line);
 
-                    var parsedLineValues = ParseStringValues(rawLineValues);
+                    var parsedLineValues = this.ParseStringValues(rawLineValues);
                     if (!parsedLineValues.IsNullOrEmpty())
                     {
-                        _linesExtracted++;
+                        this.linesExtracted++;
                         yield return parsedLineValues;
                     }
                 }
 
-                _mutipleEnumeration = true;
+                this.mutipleEnumeration = true;
             }
         }
 
         private object[] ValuesWithoutIgnoredColumns(object[] row)
         {
-            var ic = Columns.OfType<IgnoredColumn>();
+            var ic = this.Columns.OfType<IgnoredColumn>();
             if (ic.Any())
             {
-                var iic = ic.Select(column => Array.IndexOf(Columns, column));
+                var iic = ic.Select(column => Array.IndexOf(this.Columns, column));
                 var io = row.Where((o, i) => iic.Contains(i));
                 var valuesWithoutIgnoredColumns = row.Except(io).ToArray();
                 return valuesWithoutIgnoredColumns;
@@ -111,7 +95,5 @@
                 return row;
             }
         }
-
-        #endregion Methods
     }
 }
