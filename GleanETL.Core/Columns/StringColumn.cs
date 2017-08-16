@@ -2,7 +2,6 @@ namespace Glean.Core.Columns
 {
     using System;
     using System.Text;
-
     using Glean.Core.Enumerations;
 
     public class StringColumn : BaseColumn<string>
@@ -17,11 +16,11 @@ namespace Glean.Core.Columns
             StringCapitalisation stringCapitalisation = StringCapitalisation.DefaultDoNothing)
             : base(columnName)
         {
-            this.WhiteSpaceHandling = whitespaceHandling;
-            this.StringCapitalisation = stringCapitalisation;
-            this.MaxLength = maxLength;
+            WhiteSpaceHandling = whitespaceHandling;
+            StringCapitalisation = stringCapitalisation;
+            MaxLength = maxLength;
             this.encloseInDoubleQuotes = encloseInDoubleQuotes;
-            this.DetectedMaxLength = -1;
+            DetectedMaxLength = -1;
         }
 
         public int DetectedMaxLength { get; internal set; }
@@ -34,16 +33,18 @@ namespace Glean.Core.Columns
 
         public override string ParseValue(string value)
         {
-            var returnValue = this.PreParseValue(value);
+            var returnValue = PreParseValue(value);
 
             if (value != null)
             {
-                if ((this.StringCapitalisation == StringCapitalisation.ToCamelCase) && (this.WhiteSpaceHandling == WhiteSpaceHandling.RemoveAllWhiteSpace))
+                if (StringCapitalisation == StringCapitalisation.ToCamelCase &&
+                    WhiteSpaceHandling == WhiteSpaceHandling.RemoveAllWhiteSpace)
                 {
-                    throw new InvalidOperationException("ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
+                    throw new InvalidOperationException(
+                        "ToCamelCase cannot be used in conjuction with RemoveAllWhiteSpace");
                 }
 
-                switch (this.StringCapitalisation)
+                switch (StringCapitalisation)
                 {
                     case StringCapitalisation.ToLowercase:
                         returnValue = returnValue.ToLowerInvariant();
@@ -52,11 +53,11 @@ namespace Glean.Core.Columns
                         returnValue = returnValue.ToUpperInvariant();
                         break;
                     case StringCapitalisation.ToCamelCase:
-                        returnValue = this.ToPascalCase(returnValue);
+                        returnValue = ToPascalCase(returnValue);
                         break;
                 }
 
-                switch (this.WhiteSpaceHandling)
+                switch (WhiteSpaceHandling)
                 {
                     case WhiteSpaceHandling.TrimLeadingAndTrailingWhiteSpace:
                         returnValue = returnValue.Trim();
@@ -69,16 +70,18 @@ namespace Glean.Core.Columns
                         break;
                 }
 
-                if (this.MaxLength > 0)
+                if (MaxLength > 0)
                 {
-                    returnValue = returnValue.Substring(0, Math.Min(this.MaxLength, returnValue.Length));
+                    returnValue = returnValue.Substring(0, Math.Min(MaxLength, returnValue.Length));
                 }
-                else if (this.MaxLength == 0)
+                else if (MaxLength == 0)
                 {
                     returnValue = string.Empty;
                 }
 
-                returnValue = this.encloseInDoubleQuotes ? string.Format("\"{0}\"", returnValue) : returnValue.TrimStart('"').TrimEnd('"');
+                returnValue = encloseInDoubleQuotes
+                    ? string.Format("\"{0}\"", returnValue)
+                    : returnValue.TrimStart('"').TrimEnd('"');
             }
             return returnValue;
         }

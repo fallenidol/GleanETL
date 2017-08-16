@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
-
     using Glean.Core.Columns;
     using Glean.Core.EventArgs;
     using Glean.Core.Source;
@@ -16,35 +15,36 @@
     {
         private readonly bool throwParseErrors = true;
 
-        protected Extract(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
+        protected Extract(BaseColumn[] columns, IExtractSource source, TExtractTarget target,
+            bool throwParseErrors = true)
         {
-            this.ThrowMultipleEnumerationError = true;
+            ThrowMultipleEnumerationError = true;
             this.throwParseErrors = throwParseErrors;
 
-            this.Columns = columns;
-            target.Columns = this.Columns;
+            Columns = columns;
+            target.Columns = Columns;
 
-            this.Source = source;
-            this.Target = target;
+            Source = source;
+            Target = target;
 
-            this.Columns.ForEach(
+            Columns.ForEach(
                 column =>
                 {
-                    column.ParseError -= this.OnDataParseError;
-                    column.ParseError += this.OnDataParseError;
+                    column.ParseError -= OnDataParseError;
+                    column.ParseError += OnDataParseError;
                 });
 
-            this.DataParseError -= this.DataParseErrorHandler;
-            this.DataParseError += this.DataParseErrorHandler;
+            DataParseError -= DataParseErrorHandler;
+            DataParseError += DataParseErrorHandler;
         }
 
-        public IExtractSource Source { get; private set; }
+        public IExtractSource Source { get; }
 
-        public IExtractTarget Target { get; private set; }
+        public IExtractTarget Target { get; }
 
-        public bool ThrowMultipleEnumerationError { get; private set; }
+        public bool ThrowMultipleEnumerationError { get; }
 
-        internal BaseColumn[] Columns { get; private set; }
+        internal BaseColumn[] Columns { get; }
 
         public event EventHandler<ParseErrorEventArgs> DataParseError;
 
@@ -54,7 +54,7 @@
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "{0} -> {1}", this.Source.DisplayName, this.Target);
+            return string.Format(CultureInfo.InvariantCulture, "{0} -> {1}", Source.DisplayName, Target);
         }
 
         protected void OnExtractComplete(
@@ -65,10 +65,12 @@
             long commitDurationMs,
             long durationInMs)
         {
-            var handler = this.ExtractComplete;
+            var handler = ExtractComplete;
             if (handler != null)
             {
-                handler(this, new ExtractCompleteArgs(linesExtractedFromSource, linesPassedToTarget, linesCommittedToTarget, extractDurationMs, commitDurationMs, durationInMs));
+                handler(this,
+                    new ExtractCompleteArgs(linesExtractedFromSource, linesPassedToTarget, linesCommittedToTarget,
+                        extractDurationMs, commitDurationMs, durationInMs));
             }
         }
 
@@ -76,15 +78,15 @@
         {
             if (!rawLineValues.IsNullOrEmpty())
             {
-                var parsedLineValues = new object[this.Columns.Length];
+                var parsedLineValues = new object[Columns.Length];
 
                 var rawValuesPlusDerived = rawLineValues;
 
-                var ic = this.Columns.Where(x => x.GetType().BaseType.Name.StartsWith("DerivedColumn"));
+                var ic = Columns.Where(x => x.GetType().BaseType.Name.StartsWith("DerivedColumn"));
                 if (ic.Any())
                 {
                     var l = new List<string>(rawLineValues);
-                    var iic = ic.Select(column => Array.IndexOf(this.Columns, column)).ToArray();
+                    var iic = ic.Select(column => Array.IndexOf(Columns, column)).ToArray();
 
                     for (var i = 0; i < iic.Length; i++)
                     {
@@ -101,10 +103,10 @@
                     rawValuesPlusDerived = l.ToArray();
                 }
 
-                this.Columns.ForEach(
+                Columns.ForEach(
                     (i, column) =>
                     {
-                        if ((rawValuesPlusDerived != null) && (i < rawValuesPlusDerived.Length))
+                        if (rawValuesPlusDerived != null && i < rawValuesPlusDerived.Length)
                         {
                             var colType = column.GetType();
 
@@ -183,16 +185,17 @@
 
         private void DataParseErrorHandler(object sender, ParseErrorEventArgs e)
         {
-            if (this.throwParseErrors)
+            if (throwParseErrors)
             {
-                Trace.WriteLine(string.Format(CultureInfo.InvariantCulture, "PARSE ERROR: {0}, {1}", e.ValueBeingParsed ?? string.Empty, e.Message));
+                Trace.WriteLine(string.Format(CultureInfo.InvariantCulture, "PARSE ERROR: {0}, {1}",
+                    e.ValueBeingParsed ?? string.Empty, e.Message));
                 throw new ParseException(e.ValueBeingParsed, e.TargetType);
             }
         }
 
         private void OnDataParseError(object sender, ParseErrorEventArgs parseErrorEventArgs)
         {
-            var handler = this.DataParseError;
+            var handler = DataParseError;
             if (handler != null)
             {
                 handler(this, parseErrorEventArgs);

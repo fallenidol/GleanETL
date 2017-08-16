@@ -8,11 +8,12 @@
     {
         private bool firstSave = true;
 
-        public SeparatedValueFileTarget(string targetFilePath, string columnDelimiter = ",", bool deleteTargetIfExists = true)
+        public SeparatedValueFileTarget(string targetFilePath, string columnDelimiter = ",",
+            bool deleteTargetIfExists = true)
             : base(deleteTargetIfExists)
         {
-            this.TargetFilePath = targetFilePath;
-            this.ColumnDelimiter = columnDelimiter;
+            TargetFilePath = targetFilePath;
+            ColumnDelimiter = columnDelimiter;
         }
 
         public string ColumnDelimiter { get; }
@@ -21,11 +22,11 @@
 
         public override long CommitData(IEnumerable<object[]> dataRows)
         {
-            if (this.firstSave && this.DeleteIfExists && File.Exists(this.TargetFilePath))
+            if (firstSave && DeleteIfExists && File.Exists(TargetFilePath))
             {
-                File.Delete(this.TargetFilePath);
+                File.Delete(TargetFilePath);
             }
-            this.firstSave = false;
+            firstSave = false;
 
             long rowCount = 0;
             var rows = new StringBuilder();
@@ -33,21 +34,21 @@
             foreach (var row in dataRows)
             {
                 //var valuesWithoutIgnoredColumns = ValuesWithoutIgnoredColumns(row);
-                var line = string.Join(this.ColumnDelimiter, row);
+                var line = string.Join(ColumnDelimiter, row);
 
                 rows.AppendLine(line);
                 rowCount++;
 
                 if (rowCount % 10000 == 0)
                 {
-                    File.AppendAllText(this.TargetFilePath, rows.ToString());
+                    File.AppendAllText(TargetFilePath, rows.ToString());
                     rows.Clear();
                 }
             }
 
             if (rows.Length > 0)
             {
-                File.AppendAllText(this.TargetFilePath, rows.ToString());
+                File.AppendAllText(TargetFilePath, rows.ToString());
                 rows.Clear();
             }
 

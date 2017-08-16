@@ -13,19 +13,19 @@
         {
             if (extract != null)
             {
-                this.extracts.Add(extract);
+                extracts.Add(extract);
             }
         }
 
         public void Clear()
         {
-            this.extracts.Clear();
+            extracts.Clear();
         }
 
         public void ProcessParallel()
         {
             Parallel.ForEach(
-                this.extracts,
+                extracts,
                 extract =>
                 {
                     Trace.WriteLine("*** STARTING " + extract.ToString());
@@ -37,11 +37,11 @@
 
         public void ProcessSeries()
         {
-            for (var i = 0; i < this.extracts.Count(); i++)
+            for (var i = 0; i < extracts.Count(); i++)
             {
-                Trace.WriteLine("*** STARTING " + this.extracts[i]);
-                this.extracts[i].ExtractToTarget();
-                this.extracts[i] = null;
+                Trace.WriteLine("*** STARTING " + extracts[i]);
+                extracts[i].ExtractToTarget();
+                extracts[i] = null;
             }
         }
     }

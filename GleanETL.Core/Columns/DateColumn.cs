@@ -2,7 +2,6 @@ namespace Glean.Core.Columns
 {
     using System;
     using System.Globalization;
-
     using Glean.Core.Enumerations;
 
     public class DateColumn : BaseColumn<DateTime?>
@@ -13,12 +12,13 @@ namespace Glean.Core.Columns
 
         private readonly DateTime? invalidDateValue;
 
-        public DateColumn(string columnName = null, string[] inputFormats = null, string outputFormat = DefaultOutputFormat, DateTime? invalidDateValue = null)
+        public DateColumn(string columnName = null, string[] inputFormats = null,
+            string outputFormat = DefaultOutputFormat, DateTime? invalidDateValue = null)
             : base(columnName)
         {
             this.invalidDateValue = invalidDateValue;
             this.inputFormats = inputFormats ?? GetStandardDateFormats();
-            this.OutputFormat = outputFormat;
+            OutputFormat = outputFormat;
         }
 
         public string OutputFormat { get; }
@@ -33,11 +33,17 @@ namespace Glean.Core.Columns
                 case StandardDateFormats.Australia:
                 case StandardDateFormats.UnitedKingdom:
                     formats = new[]
-                        { "dd/MM/yyyy", "d/M/yyyy", "dd/M/yyyy", "d/MM/yyyy", "ddMMyyyy", "dd/M/yy", "d/MM/yy", "d/M/yy", "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+                    {
+                        "dd/MM/yyyy", "d/M/yyyy", "dd/M/yyyy", "d/MM/yyyy", "ddMMyyyy", "dd/M/yy", "d/MM/yy", "d/M/yy",
+                        "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd"
+                    };
                     break;
                 case StandardDateFormats.UnitedStates:
                     formats = new[]
-                        { "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy", "MMddyyyy", "M/dd/yy", "MM/d/yy", "M/d/yy", "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+                    {
+                        "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy", "MMddyyyy", "M/dd/yy", "MM/d/yy", "M/d/yy",
+                        "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd"
+                    };
                     break;
             }
             return formats;
@@ -55,7 +61,8 @@ namespace Glean.Core.Columns
                 if (trimmedValue.Length > 0)
                 {
                     DateTime temp;
-                    if (DateTime.TryParseExact(trimmedValue, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out temp))
+                    if (DateTime.TryParseExact(trimmedValue, validFormats, CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeLocal, out temp))
                     {
                         result = temp;
                     }
@@ -73,26 +80,26 @@ namespace Glean.Core.Columns
         {
             try
             {
-                var parsedValue = this.PreParseValue(value);
+                var parsedValue = PreParseValue(value);
 
-                return ParseValue(parsedValue, this.inputFormats);
+                return ParseValue(parsedValue, inputFormats);
             }
             catch (ParseException pe)
             {
-                this.OnParseError(pe.ValueBeingParsed, typeof(DateTime), pe.Message);
+                OnParseError(pe.ValueBeingParsed, typeof(DateTime), pe.Message);
 
-                return this.invalidDateValue;
+                return invalidDateValue;
             }
         }
 
         public string ParseValueAndFormat(string value)
         {
-            var dt = this.ParseValue(value);
+            var dt = ParseValue(value);
             string stringValue = null;
 
             if (dt.HasValue)
             {
-                stringValue = dt.Value.ToString(this.OutputFormat);
+                stringValue = dt.Value.ToString(OutputFormat);
             }
 
             return stringValue;

@@ -13,7 +13,7 @@ namespace Glean.Core.Columns
 
         public override decimal? ParseValue(string value)
         {
-            var parsedValue = this.PreParseValue(value);
+            var parsedValue = PreParseValue(value);
 
             decimal? result = null;
 
@@ -26,13 +26,14 @@ namespace Glean.Core.Columns
 
             decimal temp;
             if (!string.IsNullOrWhiteSpace(parsedValueWithoutCurrencySymbol) &&
-                decimal.TryParse(parsedValueWithoutCurrencySymbol.Trim(), NumberStyles.Currency, CultureInfo.InvariantCulture, out temp))
+                decimal.TryParse(parsedValueWithoutCurrencySymbol.Trim(), NumberStyles.Currency,
+                    CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }
             else
             {
-                this.OnParseError(value, typeof(decimal));
+                OnParseError(value, typeof(decimal));
             }
 
             return result;

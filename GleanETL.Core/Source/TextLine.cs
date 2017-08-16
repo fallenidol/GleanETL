@@ -6,16 +6,10 @@
     {
         public TextLine(string originalLineText)
         {
-            this.OriginalLine = originalLineText;
+            OriginalLine = originalLineText;
         }
 
-        public int LineLength
-        {
-            get
-            {
-                return this.OriginalLine.Length;
-            }
-        }
+        public int LineLength => OriginalLine.Length;
 
         public string OriginalLine { get; }
 
@@ -33,19 +27,19 @@
                     var nextPos = columnStartIndexes[nextIdx];
                     var length = nextPos - startPos;
 
-                    if (length < this.LineLength - startPos)
+                    if (length < LineLength - startPos)
                     {
-                        values[i] = this.OriginalLine.Substring(startPos, length);
+                        values[i] = OriginalLine.Substring(startPos, length);
                     }
                     else
                     {
-                        values[i] = this.OriginalLine.Substring(startPos);
+                        values[i] = OriginalLine.Substring(startPos);
                         break;
                     }
                 }
                 else
                 {
-                    values[i] = this.OriginalLine.Substring(startPos);
+                    values[i] = OriginalLine.Substring(startPos);
                     break;
                 }
             }
@@ -55,12 +49,12 @@
 
         public string SplitAndGetString(int index, char delimiter)
         {
-            return this.OriginalLine.Split(new[] { delimiter }, StringSplitOptions.None)[index];
+            return OriginalLine.Split(new[] { delimiter }, StringSplitOptions.None)[index];
         }
 
         public override string ToString()
         {
-            return this.OriginalLine;
+            return OriginalLine;
         }
     }
 }

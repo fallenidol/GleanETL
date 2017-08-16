@@ -11,19 +11,20 @@ namespace Glean.Core.Columns
 
         public override decimal? ParseValue(string value)
         {
-            var parsedValue = this.PreParseValue(value);
+            var parsedValue = PreParseValue(value);
 
             decimal? result = null;
 
             decimal temp;
             if (!string.IsNullOrWhiteSpace(parsedValue) &&
-                decimal.TryParse(parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty), NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
+                decimal.TryParse(parsedValue.Trim().Replace(Constants.SingleSpace, string.Empty), NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }
             else
             {
-                this.OnParseError(value, typeof(decimal));
+                OnParseError(value, typeof(decimal));
             }
 
             return result;

@@ -3,13 +3,11 @@
     using System;
     using System.Diagnostics;
     using System.IO;
-
     using Glean.Core.Columns;
     using Glean.Core.EventArgs;
     using Glean.Core.Extraction;
     using Glean.Core.Source;
     using Glean.Core.Target;
-
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -39,15 +37,20 @@
             var columns = new BaseColumn[] { new DateColumn() };
             var data = new[]
             {
-                "2015-01-01", "2015-12-31", "3015-01-01", "1015-01-01", "0001-01-01", "2015-01-01 ", " 2015-01-01 ", "2015-01-01", "2015-1-1", "01/01/2015", "1/1/2015",
+                "2015-01-01", "2015-12-31", "3015-01-01", "1015-01-01", "0001-01-01", "2015-01-01 ", " 2015-01-01 ",
+                "2015-01-01", "2015-1-1", "01/01/2015", "1/1/2015",
                 "31122015", "31/1/15", "1/1/15", "2015-1-1", "2015-12-1", "2015-1-31"
             };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -59,10 +62,14 @@
             var data = new[] { "2015-01" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -74,10 +81,14 @@
             var data = new[] { "12th Jan" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -89,10 +100,14 @@
             var data = new[] { "12/31/2015" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -104,10 +119,14 @@
             var data = new[] { "0000-01-01" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -119,10 +138,14 @@
             var data = new[] { "2015-01-01a" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -134,10 +157,14 @@
             var data = new[] { "2015-02-31" };
 
             var source = new MemorySource("Data", data);
-            var extraction = new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true) { SplitLineFunc = line => line.OriginalLine.Split(',') };
+            var extraction =
+                new LineExtraction<TraceOutputTarget>(columns, source, new TraceOutputTarget(), true)
+                {
+                    SplitLineFunc = line => line.OriginalLine.Split(',')
+                };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 

@@ -15,8 +15,8 @@
 
         public SqlTableCreator(SqlConnection connection, SqlTransaction transaction)
         {
-            this.Connection = connection;
-            this.Transaction = transaction;
+            Connection = connection;
+            Transaction = transaction;
         }
 
         public SqlConnection Connection { get; set; }
@@ -29,7 +29,9 @@
         {
             var sql = new StringBuilder();
 
-            sql.AppendFormattedLine("IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') ", schema, tableName);
+            sql.AppendFormattedLine(
+                "IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') ",
+                schema, tableName);
 
             sql.AppendFormattedLine("CREATE TABLE [{0}].[{1}] (", schema, tableName);
 
@@ -67,7 +69,7 @@
                 {
                     sql += "\t[" + column["ColumnName"] + "] " + SqlGetType(column);
 
-                    if (schema.Columns.Contains("AllowDBNull") && ((bool)column["AllowDBNull"] == false))
+                    if (schema.Columns.Contains("AllowDBNull") && (bool)column["AllowDBNull"] == false)
                     {
                         sql += " NOT NULL";
                     }
@@ -79,11 +81,12 @@
 
             // primary keys
             var pk = ", CONSTRAINT PK_" + tableName + " PRIMARY KEY CLUSTERED (";
-            var hasKeys = (primaryKeys != null) && (primaryKeys.Length > 0);
+            var hasKeys = primaryKeys != null && primaryKeys.Length > 0;
             if (hasKeys)
             {
                 // user defined keys
-                pk = primaryKeys.Aggregate(pk, (current, key) => current + schema.Rows[key]["ColumnName"].ToString() + ", ");
+                pk = primaryKeys.Aggregate(pk,
+                    (current, key) => current + schema.Rows[key]["ColumnName"].ToString() + ", ");
             }
             else
             {
@@ -105,7 +108,9 @@
 
         public static string[] GetPrimaryKeys(DataTable schema)
         {
-            return (from DataRow column in schema.Rows where schema.Columns.Contains("IsKey") && (bool)column["IsKey"] select column["ColumnName"].ToString()).ToArray();
+            return (from DataRow column in schema.Rows
+                where schema.Columns.Contains("IsKey") && (bool)column["IsKey"]
+                select column["ColumnName"].ToString()).ToArray();
         }
 
         // Return T-SQL data type definition, based on schema definition for a column
@@ -170,7 +175,7 @@
 
         public object Create(DataTable schema)
         {
-            return this.Create(schema, null);
+            return Create(schema, null);
         }
 
         public object Create(DataTable schema, int numKeys)
@@ -180,21 +185,21 @@
             {
                 primaryKeys[i] = i;
             }
-            return this.Create(schema, primaryKeys);
+            return Create(schema, primaryKeys);
         }
 
         public object Create(DataTable schema, int[] primaryKeys)
         {
-            var sql = GetCreateSql(this.DestinationTableName, schema, primaryKeys);
+            var sql = GetCreateSql(DestinationTableName, schema, primaryKeys);
 
             SqlCommand cmd;
-            if ((this.Transaction != null) && (this.Transaction.Connection != null))
+            if (Transaction != null && Transaction.Connection != null)
             {
-                cmd = new SqlCommand(sql, this.Connection, this.Transaction);
+                cmd = new SqlCommand(sql, Connection, Transaction);
             }
             else
             {
-                cmd = new SqlCommand(sql, this.Connection);
+                cmd = new SqlCommand(sql, Connection);
             }
 
             return cmd.ExecuteNonQuery();
@@ -202,16 +207,16 @@
 
         public object CreateFromDataTable(DataTable table)
         {
-            var sql = GetCreateFromDataTableSql(this.DestinationTableName, table);
+            var sql = GetCreateFromDataTableSql(DestinationTableName, table);
 
             SqlCommand cmd;
-            if ((this.Transaction != null) && (this.Transaction.Connection != null))
+            if (Transaction != null && Transaction.Connection != null)
             {
-                cmd = new SqlCommand(sql, this.Connection, this.Transaction);
+                cmd = new SqlCommand(sql, Connection, Transaction);
             }
             else
             {
-                cmd = new SqlCommand(sql, this.Connection);
+                cmd = new SqlCommand(sql, Connection);
             }
 
             return cmd.ExecuteNonQuery();

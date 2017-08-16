@@ -7,7 +7,6 @@
     using System.Globalization;
     using System.Linq;
     using System.Text;
-
     using Glean.Core.Columns;
 
     public class DatabaseTableTarget : BaseExtractTarget
@@ -22,11 +21,12 @@
 
         private bool firstTime = true;
 
-        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo", bool deleteTableIfExists = false)
+        public DatabaseTableTarget(string connectionString, string targetTable, string targetSchema = "dbo",
+            bool deleteTableIfExists = false)
             : base(deleteTableIfExists)
         {
-            this.table = targetTable.Trim();
-            this.schema = targetSchema.Trim();
+            table = targetTable.Trim();
+            schema = targetSchema.Trim();
 
             var csb = new SqlConnectionStringBuilder(connectionString) { PersistSecurityInfo = true };
 
@@ -35,8 +35,8 @@
 
         public override string ToString()
         {
-            var sb = new SqlConnectionStringBuilder(this.connectionString);
-            return string.Format("{0}.{1}.{2}", sb.DataSource, sb.InitialCatalog, this.table);
+            var sb = new SqlConnectionStringBuilder(connectionString);
+            return string.Format("{0}.{1}.{2}", sb.DataSource, sb.InitialCatalog, table);
         }
 
         public override long CommitData(IEnumerable<object[]> dataRows)
@@ -44,11 +44,11 @@
             const int BatchSize = 10000;
             long lineCount = 0;
 
-            using (var c = new SqlConnection(this.connectionString))
+            using (var c = new SqlConnection(connectionString))
             {
                 c.Open();
 
-                if (this.DeleteIfExists && this.firstTime)
+                if (DeleteIfExists && firstTime)
                 {
                     using (
                         var cmd =
@@ -56,15 +56,15 @@
                                 string.Format(
                                     CultureInfo.InvariantCulture,
                                     "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' and TABLE_SCHEMA='{0}') TRUNCATE TABLE {0}.{1};",
-                                    this.schema,
-                                    this.table),
+                                    schema,
+                                    table),
                                 c))
                     {
                         cmd.ExecuteNonQuery();
                     }
                 }
 
-                using (var data = new DataTable(this.table))
+                using (var data = new DataTable(table))
                 {
                     var ordinal = 0;
 
@@ -77,15 +77,15 @@
                         AllowDBNull = false
                     };
 
-                    if (!this.DeleteIfExists)
+                    if (!DeleteIfExists)
                     {
                         using (
                             var cmd =
                                 new SqlCommand(
                                     string.Format(
                                         "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='{1}' AND TABLE_SCHEMA='{0}') SELECT Coalesce(MAX({2}),0)+1 FROM [{0}].[{1}]; ELSE SELECT 1;",
-                                        this.schema,
-                                        this.table,
+                                        schema,
+                                        table,
                                         UniqueRowIdColumnName),
                                     c))
                         {
@@ -98,13 +98,13 @@
 
                     data.PrimaryKey = new[] { rowId };
 
-                    foreach (var col in this.Columns)
+                    foreach (var col in Columns)
                     {
                         if (!(col is IgnoredColumn))
                         {
                             ordinal++;
 
-                            var dc = this.GetDataColumn(col);
+                            var dc = GetDataColumn(col);
                             data.Columns.Add(dc);
 
                             dc.SetOrdinal(ordinal);
@@ -121,25 +121,26 @@
 
                             while (iterator.MoveNext())
                             {
-                                this.AddRow(row, data, BatchSize, c, false);
+                                AddRow(row, data, BatchSize, c, false);
                                 lineCount++;
 
                                 row = iterator.Current;
                             }
 
-                            this.AddRow(row, data, BatchSize, c, true);
+                            AddRow(row, data, BatchSize, c, true);
                             lineCount++;
                         }
                         else
                         {
-                            this.CreateSchema(data, c);
+                            CreateSchema(data, c);
                         }
                     }
 
                     if (lineCount > 0)
                     {
                         var sqlBuilder = new StringBuilder();
-                        foreach (var column in this.Columns.OfType<BaseColumn>().Where(bc => bc is StringColumn || bc is DerivedStringColumn))
+                        foreach (var column in Columns.OfType<BaseColumn>()
+                            .Where(bc => bc is StringColumn || bc is DerivedStringColumn))
                         {
                             var length = 255;
                             var maxlength = -1;
@@ -147,7 +148,11 @@
                             {
                                 var sc = column as StringColumn;
                                 maxlength = sc.MaxLength;
-                                length = sc.DetectedMaxLength <= 0 ? sc.MaxLength <= 0 ? 255 : sc.MaxLength : sc.DetectedMaxLength;
+                                length = sc.DetectedMaxLength <= 0
+                                    ? sc.MaxLength <= 0
+                                        ? 255
+                                        : sc.MaxLength
+                                    : sc.DetectedMaxLength;
                             }
                             else if (column is DerivedStringColumn)
                             {
@@ -158,13 +163,13 @@
 
                             maxlength = length > 4000 ? -1 : length;
 
-                            if (this.DeleteIfExists)
+                            if (DeleteIfExists)
                             {
                                 sqlBuilder.AppendLine(
                                     string.Format(
                                         "ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({3});",
-                                        this.schema,
-                                        this.table,
+                                        schema,
+                                        table,
                                         column.ColumnName,
                                         maxlength != -1 ? length.ToString() : "MAX"));
                             }
@@ -173,8 +178,8 @@
                                 sqlBuilder.AppendLine(
                                     string.Format(
                                         "IF ((SELECT MAX(LEN([{2}])) FROM [{0}].[{1}]) < {3}) ALTER TABLE [{0}].[{1}] ALTER COLUMN [{2}] nvarchar({4});",
-                                        this.schema,
-                                        this.table,
+                                        schema,
+                                        table,
                                         column.ColumnName,
                                         length,
                                         maxlength != -1 ? length.ToString() : "MAX"));
@@ -202,18 +207,18 @@
                 data.Rows.Add(values.ToArray());
             }
 
-            if ((data.Rows.Count == batchSize) || isLastRow)
+            if (data.Rows.Count == batchSize || isLastRow)
             {
-                if (this.firstTime)
+                if (firstTime)
                 {
-                    this.CreateSchema(data, c);
+                    CreateSchema(data, c);
 
-                    this.firstTime = false;
+                    firstTime = false;
                 }
 
                 using (var sbc = new SqlBulkCopy(c.ConnectionString, SqlBulkCopyOptions.TableLock))
                 {
-                    sbc.DestinationTableName = this.schema + "." + this.table;
+                    sbc.DestinationTableName = schema + "." + table;
                     sbc.WriteToServer(data);
                 }
 
@@ -227,9 +232,9 @@
         {
             var schemaSql = @"
 sp_executesql @statement=N'
-IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + this.schema + @"''))
+IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + schema + @"''))
     BEGIN
-        EXEC sp_executesql N''CREATE SCHEMA [" + this.schema + @"] AUTHORIZATION [dbo]'';
+        EXEC sp_executesql N''CREATE SCHEMA [" + schema + @"] AUTHORIZATION [dbo]'';
     END
 '
 ";
@@ -239,15 +244,16 @@ IF (NOT EXISTS (SELECT ''x'' FROM sys.schemas WHERE name = ''" + this.schema + @
                 cmd.ExecuteNonQuery();
             }
 
-            var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(this.table, data, this.schema);
+            var createTableSql = SqlTableCreator.GetCreateFromDataTableSql(table, data, schema);
             var sql = createTableSql + "; ";
-            if (this.DeleteIfExists)
+            if (DeleteIfExists)
             {
                 sql = @"
 sp_executesql @statement=N'
-IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ''" + this.schema + @"'' AND TABLE_NAME = ''" + this.table + @"'')) 
+IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ''" + schema +
+                      @"'' AND TABLE_NAME = ''" + table + @"'')) 
     BEGIN 
-        DROP TABLE [" + this.schema + @"].[" + this.table + @"];
+        DROP TABLE [" + schema + @"].[" + table + @"];
     END;';
 
 " + sql;
@@ -260,7 +266,12 @@ IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA 
 
         private DataColumn GetDataColumn(BaseColumn col)
         {
-            var dc = new DataColumn(col.ColumnName) { Caption = col.ColumnDisplayName, AllowDBNull = true, ReadOnly = true };
+            var dc = new DataColumn(col.ColumnName)
+            {
+                Caption = col.ColumnDisplayName,
+                AllowDBNull = true,
+                ReadOnly = true
+            };
 
             var colType = col.GetType();
 

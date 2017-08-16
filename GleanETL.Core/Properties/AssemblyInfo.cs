@@ -2,7 +2,9 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("GleanETL")]
-[assembly: AssemblyDescription("Aims to be a simple framework with which to extract data from text files, particularly if they are in non-standard formats.")]
+[assembly:
+    AssemblyDescription(
+        "Aims to be a simple framework with which to extract data from text files, particularly if they are in non-standard formats.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("GleanETL")]

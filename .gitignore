@@ -155,3 +155,4 @@ $RECYCLE.BIN/
 # Mac desktop service store files
 .DS_Store
 Gleanio.Test/Files/GLTRANS.txt
+/.vs/Glean/v15/sqlite3

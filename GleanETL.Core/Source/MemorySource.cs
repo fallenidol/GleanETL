@@ -9,21 +9,21 @@
 
         public MemorySource(string displayName, IEnumerable<string> data)
         {
-            this.TakeLineIf = line => true;
+            TakeLineIf = line => true;
 
-            this.DisplayName = displayName;
-            this.Data = data;
+            DisplayName = displayName;
+            Data = data;
         }
 
-        private IEnumerable<string> Data { get; set; }
+        private IEnumerable<string> Data { get; }
 
         public IEnumerator<TextLine> EnumerateLines()
         {
-            lock (this.enumeratorLock1)
+            lock (enumeratorLock1)
             {
-                foreach (var line in this.Data)
+                foreach (var line in Data)
                 {
-                    if (this.TakeLineIf.Invoke(line))
+                    if (TakeLineIf.Invoke(line))
                     {
                         yield return new TextLine(line);
                     }
@@ -31,7 +31,7 @@
             }
         }
 
-        public string DisplayName { get; private set; }
+        public string DisplayName { get; }
 
         public Func<string, bool> TakeLineIf { get; set; }
     }

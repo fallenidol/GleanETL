@@ -12,36 +12,36 @@
             long commitDurationMs,
             long durationInMs)
         {
-            this.DurationInMs = durationInMs;
-            this.CommitDurationMs = commitDurationMs;
-            this.ExtractDurationMs = extractDurationMs;
-            this.LinesCommittedToTarget = linesCommittedToTarget;
-            this.LinesPassedToTarget = linesPassedToTarget;
-            this.LinesExtractedFromSource = linesExtractedFromSource;
+            DurationInMs = durationInMs;
+            CommitDurationMs = commitDurationMs;
+            ExtractDurationMs = extractDurationMs;
+            LinesCommittedToTarget = linesCommittedToTarget;
+            LinesPassedToTarget = linesPassedToTarget;
+            LinesExtractedFromSource = linesExtractedFromSource;
         }
 
-        public long LinesExtractedFromSource { get; private set; }
+        public long LinesExtractedFromSource { get; }
 
-        public long LinesPassedToTarget { get; private set; }
+        public long LinesPassedToTarget { get; }
 
-        public long LinesCommittedToTarget { get; private set; }
+        public long LinesCommittedToTarget { get; }
 
-        public long ExtractDurationMs { get; private set; }
+        public long ExtractDurationMs { get; }
 
-        public long CommitDurationMs { get; private set; }
+        public long CommitDurationMs { get; }
 
-        public long DurationInMs { get; private set; }
+        public long DurationInMs { get; }
 
         public override string ToString()
         {
             return string.Format(
                 "Total Duration={1}ms; Extract Duration={2}ms; Commit Duration={0}ms; Lines Extracted={3}, Lines Passed={4}; Lines Committed={5};",
-                this.CommitDurationMs,
-                this.DurationInMs,
-                this.ExtractDurationMs,
-                this.LinesExtractedFromSource,
-                this.LinesPassedToTarget,
-                this.LinesCommittedToTarget);
+                CommitDurationMs,
+                DurationInMs,
+                ExtractDurationMs,
+                LinesExtractedFromSource,
+                LinesPassedToTarget,
+                LinesCommittedToTarget);
         }
     }
 }

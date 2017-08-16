@@ -5,7 +5,6 @@
     using System.Data.SqlClient;
     using System.Diagnostics;
     using System.IO;
-
     using Glean.Core;
     using Glean.Core.Columns;
     using Glean.Core.Enumerations;
@@ -13,13 +12,13 @@
     using Glean.Core.Extraction;
     using Glean.Core.Source;
     using Glean.Core.Target;
-
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class Scratch
     {
-        private const string LocalDbConnectionString = @"Server=(localDB)\MSSQLLocalDB;Integrated Security=true;Initial Catalog=GleanETL;";
+        private const string LocalDbConnectionString =
+            @"Server=(localDB)\MSSQLLocalDB;Integrated Security=true;Initial Catalog=GleanETL;";
 
         private static readonly string DatabaseConnectionString = LocalDbConnectionString;
 
@@ -52,11 +51,18 @@
             }
             else
             {
-                var source = new TextFileSource(WindowsUpdateLogFilePath) { TakeLineIf = line => (line.Length > 0) && (!line.Contains("#") || (line.IndexOf('#') > 0)) };
+                var source = new TextFileSource(WindowsUpdateLogFilePath)
+                {
+                    TakeLineIf = line => line.Length > 0 && (!line.Contains("#") || line.IndexOf('#') > 0)
+                };
 
                 var target = new DatabaseTableTarget(DatabaseConnectionString, "Hosts", deleteTableIfExists: true);
 
-                var columns = new[] { new StringColumn("IpAddress"), new StringColumn("Hostname", stringCapitalisation: StringCapitalisation.ToLowercase) };
+                var columns = new[]
+                {
+                    new StringColumn("IpAddress"),
+                    new StringColumn("Hostname", stringCapitalisation: StringCapitalisation.ToLowercase)
+                };
 
                 var extraction = new LineExtraction<DatabaseTableTarget>(columns, source, target, true)
                 {
@@ -64,11 +70,11 @@
                         line =>
                             line.OriginalLine.TrimAndRemoveConsecutiveWhiteSpace()
                                 .Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries)
-                                .ForEachAssign((i, s) => (i > 0) && s.Contains("#") ? s.Substring(0, s.IndexOf('#')) : s)
+                                .ForEachAssign((i, s) => i > 0 && s.Contains("#") ? s.Substring(0, s.IndexOf('#')) : s)
                 };
 
-                extraction.DataParseError += this.DataParseError;
-                extraction.ExtractComplete += this.ExtractComplete;
+                extraction.DataParseError += DataParseError;
+                extraction.ExtractComplete += ExtractComplete;
                 extraction.ExtractToTarget();
             }
         }
@@ -76,9 +82,16 @@
         [TestMethod]
         public void ExtractHostsFileToTraceOutput()
         {
-            var columns = new[] { new StringColumn("IP", 16), new StringColumn("HOST", 250, stringCapitalisation: StringCapitalisation.ToLowercase) };
+            var columns = new[]
+            {
+                new StringColumn("IP", 16),
+                new StringColumn("HOST", 250, stringCapitalisation: StringCapitalisation.ToLowercase)
+            };
 
-            var source = new TextFileSource(@"C:\Windows\System32\drivers\etc\HOSTS") { TakeLineIf = line => (line.Length > 0) && (!line.Contains("#") || (line.IndexOf('#') > 0)) };
+            var source = new TextFileSource(@"C:\Windows\System32\drivers\etc\HOSTS")
+            {
+                TakeLineIf = line => line.Length > 0 && (!line.Contains("#") || line.IndexOf('#') > 0)
+            };
 
             var target = new TraceOutputTarget();
 
@@ -88,11 +101,11 @@
                     line =>
                         line.OriginalLine.TrimAndRemoveConsecutiveWhiteSpace()
                             .Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries)
-                            .ForEachAssign((i, s) => (i > 0) && s.Contains("#") ? s.Substring(0, s.IndexOf('#')) : s)
+                            .ForEachAssign((i, s) => i > 0 && s.Contains("#") ? s.Substring(0, s.IndexOf('#')) : s)
             };
 
-            extraction.DataParseError += this.DataParseError;
-            extraction.ExtractComplete += this.ExtractComplete;
+            extraction.DataParseError += DataParseError;
+            extraction.ExtractComplete += ExtractComplete;
             extraction.ExtractToTarget();
         }
 
@@ -108,18 +121,24 @@
 
                 var columns = new BaseColumn[]
                 {
-                    new DateColumn("Timestamp", new[] { "yyyy-MM-dd HH:mm:ss:fff" }, "yyyy-MM-dd HH:mm:ss.fff"), new IgnoredColumn(), new IgnoredColumn(),
+                    new DateColumn("Timestamp", new[] { "yyyy-MM-dd HH:mm:ss:fff" }, "yyyy-MM-dd HH:mm:ss.fff"),
+                    new IgnoredColumn(), new IgnoredColumn(),
                     new StringColumn("Message")
                 };
 
                 var source = new TextFileSource(sourceFile) { TakeLineIf = line => line.Length > 0 };
 
-                var target = new DatabaseTableTarget(DatabaseConnectionString, "WindowsUpdateLog", deleteTableIfExists: true);
+                var target = new DatabaseTableTarget(DatabaseConnectionString, "WindowsUpdateLog",
+                    deleteTableIfExists: true);
 
-                var extraction = new LineExtraction<DatabaseTableTarget>(columns, source, target, true) { SplitLineFunc = line => line.Split(0, 23, 28, 33) };
+                var extraction =
+                    new LineExtraction<DatabaseTableTarget>(columns, source, target, true)
+                    {
+                        SplitLineFunc = line => line.Split(0, 23, 28, 33)
+                    };
 
-                extraction.DataParseError += this.DataParseError;
-                extraction.ExtractComplete += this.ExtractComplete;
+                extraction.DataParseError += DataParseError;
+                extraction.ExtractComplete += ExtractComplete;
                 extraction.ExtractToTarget();
 
                 if (File.Exists(sourceFile))
@@ -169,18 +188,18 @@
             Trace.WriteLine(string.Format("EXTRACTION COMPLETE!!: {0}", e));
         }
 
-        //        int bufferedLines = 0;
-        //        var sb = new StringBuilder();
-        //        using (File.Create(tf)) { }
-        //        Directory.CreateDirectory(up);
-        //    {
-        //    if (!File.Exists(tf))
-        //    string tf = Path.Combine(up, @"rnd_big_file.txt");
-        //    string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"GleanETL\");
-        //{
-        //public void GenerateBigFile()
-
         //[TestMethod]
+        //public void GenerateBigFile()
+        //{
+        //    string up = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"GleanETL\");
+        //    string tf = Path.Combine(up, @"rnd_big_file.txt");
+        //    if (!File.Exists(tf))
+        //    {
+        //        Directory.CreateDirectory(up);
+        //        using (File.Create(tf)) { }
+        //        var sb = new StringBuilder();
+
+        //        int bufferedLines = 0;
         //        for (int i = 0; i < 3000000; i++)
         //        {
         //            var rnd = new Random(i);

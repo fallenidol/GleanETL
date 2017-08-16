@@ -11,18 +11,19 @@ namespace Glean.Core.Columns
 
         public override int? ParseValue(string value)
         {
-            var parsedValue = this.PreParseValue(value);
+            var parsedValue = PreParseValue(value);
 
             int? result = null;
 
             int temp;
-            if (!string.IsNullOrWhiteSpace(parsedValue) && int.TryParse(parsedValue.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
+            if (!string.IsNullOrWhiteSpace(parsedValue) && int.TryParse(parsedValue.Trim(), NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out temp))
             {
                 result = temp;
             }
             else
             {
-                this.OnParseError(value, typeof(int));
+                OnParseError(value, typeof(int));
             }
 
             return result;

@@ -1,18 +1,17 @@
 namespace Glean.Core.Target
 {
     using System.Collections.Generic;
-
     using Glean.Core.Columns;
 
     public abstract class BaseExtractTarget : IExtractTarget
     {
         protected BaseExtractTarget(bool deleteIfExists = false)
         {
-            this.ThrowMultipleEnumerationError = true;
-            this.DeleteIfExists = deleteIfExists;
+            ThrowMultipleEnumerationError = true;
+            DeleteIfExists = deleteIfExists;
         }
 
-        public bool ThrowMultipleEnumerationError { get; private set; }
+        public bool ThrowMultipleEnumerationError { get; }
 
         internal BaseColumn[] Columns { get; set; }
 
@@ -34,6 +33,6 @@ namespace Glean.Core.Target
 
         public abstract long CommitData(IEnumerable<object[]> dataRows);
 
-        public bool DeleteIfExists { get; private set; }
+        public bool DeleteIfExists { get; }
     }
 }

@@ -8,20 +8,14 @@ namespace Glean.Core.Source
 
         public TextFileRecord()
         {
-            this.fileLines = new List<TextLine>();
+            fileLines = new List<TextLine>();
         }
 
-        public IEnumerable<TextLine> FileLines
-        {
-            get
-            {
-                return this.fileLines;
-            }
-        }
+        public IEnumerable<TextLine> FileLines => fileLines;
 
         public void AddFileLine(TextLine textFileLine)
         {
-            this.fileLines.Add(textFileLine);
+            fileLines.Add(textFileLine);
         }
     }
 }

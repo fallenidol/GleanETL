@@ -18,7 +18,8 @@
             return text.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector)
         {
             var seenKeys = new HashSet<TKey>();
             return source.Where(element => seenKeys.Add(keySelector(element)));
@@ -103,12 +104,12 @@
         {
             var last = items.LastOrDefault();
 
-            return (last != null) && last.Equals(element);
+            return last != null && last.Equals(element);
         }
 
         public static bool IsNullOrEmpty(this Array array)
         {
-            return (array == null) || (array.Length == 0);
+            return array == null || array.Length == 0;
         }
 
         public static bool IsNumber(this string text)
@@ -148,7 +149,8 @@
             var testText = text.Substring(startIndex, testLength);
 
             double x;
-            return !string.IsNullOrWhiteSpace(testText) && double.TryParse(testText, NumberStyles.Number, CultureInfo.InvariantCulture, out x);
+            return !string.IsNullOrWhiteSpace(testText) &&
+                   double.TryParse(testText, NumberStyles.Number, CultureInfo.InvariantCulture, out x);
         }
 
         public static string RemoveAllWhiteSpace(this string text)

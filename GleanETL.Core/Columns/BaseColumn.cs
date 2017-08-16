@@ -1,28 +1,28 @@
 ﻿namespace Glean.Core.Columns
 {
     using System;
-
     using Glean.Core.EventArgs;
 
     public abstract class BaseColumn
     {
         protected BaseColumn(string columnName, Type dataType)
         {
-            if ((dataType != null) && !dataType.IsClass && (Nullable.GetUnderlyingType(dataType) == null))
+            if (dataType != null && !dataType.IsClass && Nullable.GetUnderlyingType(dataType) == null)
             {
-                throw new ArgumentException(string.Format("[{0}] is not a nullable type. Please supply a nullable type, such as [DateTime?]", dataType.Name));
+                throw new ArgumentException(string.Format(
+                    "[{0}] is not a nullable type. Please supply a nullable type, such as [DateTime?]", dataType.Name));
             }
 
-            this.DataType = dataType;
-            this.ColumnName = columnName;
-            this.ColumnDisplayName = columnName;
+            DataType = dataType;
+            ColumnName = columnName;
+            ColumnDisplayName = columnName;
         }
 
-        public string ColumnDisplayName { get; private set; }
+        public string ColumnDisplayName { get; }
 
-        public string ColumnName { get; private set; }
+        public string ColumnName { get; }
 
-        public Type DataType { get; private set; }
+        public Type DataType { get; }
 
         public Func<string, string> PreParseFunction { get; set; }
 
@@ -30,27 +30,28 @@
 
         protected void OnParseError(string valueBeingParsed, Type targetType, Exception exception)
         {
-            this.OnParseError(new ParseErrorEventArgs(valueBeingParsed, exception, targetType));
+            OnParseError(new ParseErrorEventArgs(valueBeingParsed, exception, targetType));
         }
 
-        protected void OnParseError(string valueBeingParsed, Type targetType, string message = "The value could not be parsed.")
+        protected void OnParseError(string valueBeingParsed, Type targetType,
+            string message = "The value could not be parsed.")
         {
-            this.OnParseError(new ParseErrorEventArgs(valueBeingParsed, message, targetType));
+            OnParseError(new ParseErrorEventArgs(valueBeingParsed, message, targetType));
         }
 
         protected void OnParseError(ParseErrorEventArgs args)
         {
-            if (this.ParseError != null)
+            if (ParseError != null)
             {
-                this.ParseError.Invoke(this, args);
+                ParseError.Invoke(this, args);
             }
         }
 
         protected string PreParseValue(string value)
         {
-            if (this.PreParseFunction != null)
+            if (PreParseFunction != null)
             {
-                return this.PreParseFunction(value);
+                return PreParseFunction(value);
             }
 
             return value;

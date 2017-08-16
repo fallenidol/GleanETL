@@ -1,7 +1,6 @@
 ﻿namespace Glean.Core.Extraction
 {
     using System;
-
     using Glean.Core.EventArgs;
 
     public interface IExtract

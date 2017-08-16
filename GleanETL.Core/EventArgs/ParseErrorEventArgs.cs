@@ -6,24 +6,24 @@
     {
         public ParseErrorEventArgs(string valueBeingParsed, string message, Type targetType)
         {
-            this.Message = message;
-            this.ValueBeingParsed = valueBeingParsed;
-            this.TargetType = targetType;
+            Message = message;
+            ValueBeingParsed = valueBeingParsed;
+            TargetType = targetType;
         }
 
         public ParseErrorEventArgs(string valueBeingParsed, Exception exception, Type targetType)
         {
-            this.Exception = exception;
-            this.ValueBeingParsed = valueBeingParsed;
-            this.TargetType = targetType;
+            Exception = exception;
+            ValueBeingParsed = valueBeingParsed;
+            TargetType = targetType;
         }
 
-        public string ValueBeingParsed { get; private set; }
+        public string ValueBeingParsed { get; }
 
-        public Exception Exception { get; private set; }
+        public Exception Exception { get; }
 
-        public string Message { get; private set; }
+        public string Message { get; }
 
-        public Type TargetType { get; private set; }
+        public Type TargetType { get; }
     }
 }

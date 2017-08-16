@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-
     using Glean.Core.Columns;
     using Glean.Core.Source;
     using Glean.Core.Target;
@@ -24,15 +23,18 @@
 
         private bool mutipleEnumeration2;
 
-        public RecordExtraction(BaseColumn[] columns, IExtractSource source, TExtractTarget target, bool throwParseErrors = true)
+        public RecordExtraction(BaseColumn[] columns, IExtractSource source, TExtractTarget target,
+            bool throwParseErrors = true)
             : base(columns, source, target, throwParseErrors)
         {
-            this.IsFirstLineOfRecord = (line, prevLine) => true;
-            this.ParseRecord = record =>
+            IsFirstLineOfRecord = (line, prevLine) => true;
+            ParseRecord = record =>
             {
                 var firstOrDefault = record.FileLines.FirstOrDefault();
                 return firstOrDefault != null
-                    ? (record.FileLines.Any() ? new[] { TextFileRecordLine.New(firstOrDefault.OriginalLine, Constants.RecordLineDelimiter) } : null)
+                    ? (record.FileLines.Any()
+                        ? new[] { TextFileRecordLine.New(firstOrDefault.OriginalLine, Constants.RecordLineDelimiter) }
+                        : null)
                     : null;
             };
         }
@@ -43,11 +45,11 @@
 
         public IEnumerable<TextFileRecord> EnumerateRecords()
         {
-            lock (this.enumeratorLock1)
+            lock (enumeratorLock1)
             {
-                if (this.ThrowMultipleEnumerationError)
+                if (ThrowMultipleEnumerationError)
                 {
-                    if (this.mutipleEnumeration1)
+                    if (mutipleEnumeration1)
                     {
                         throw new Exception("Multiple enumeration of data!");
                     }
@@ -56,14 +58,14 @@
                 TextFileRecord currentTextFileRecord = null;
                 TextLine previousLine = null;
 
-                var enumerator = this.Source.EnumerateLines();
+                var enumerator = Source.EnumerateLines();
                 while (enumerator.MoveNext())
                 {
-                    this.fileLinesRead++;
+                    fileLinesRead++;
 
                     var line = enumerator.Current;
 
-                    if (this.IsFirstLineOfRecord(line, previousLine))
+                    if (IsFirstLineOfRecord(line, previousLine))
                     {
                         if (currentTextFileRecord != null)
                         {
@@ -83,52 +85,53 @@
 
                 yield return currentTextFileRecord;
 
-                this.mutipleEnumeration1 = true;
+                mutipleEnumeration1 = true;
             }
         }
 
         public override void ExtractToTarget()
         {
-            this.mutipleEnumeration1 = false;
-            this.mutipleEnumeration2 = false;
+            mutipleEnumeration1 = false;
+            mutipleEnumeration2 = false;
 
             var sw = Stopwatch.StartNew();
 
-            var records = this.EnumerateRecords();
+            var records = EnumerateRecords();
 
-            var lines = this.FlattenRecordsIntoLines(records);
+            var lines = FlattenRecordsIntoLines(records);
 
             var targetFileLines = new List<object[]>();
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var line in lines)
             {
                 var rawLineValues = line.Text.Split(new[] { line.Delimiter }, StringSplitOptions.None);
-                var parsedLineValues = this.ParseStringValues(rawLineValues);
+                var parsedLineValues = ParseStringValues(rawLineValues);
 
-                if ((parsedLineValues != null) && (parsedLineValues.Length > 0))
+                if (parsedLineValues != null && parsedLineValues.Length > 0)
                 {
-                    this.linesExtracted++;
+                    linesExtracted++;
                     targetFileLines.Add(parsedLineValues);
                 }
             }
 
             var extractDurationMs = sw.ElapsedMilliseconds;
 
-            var lineCount = this.Target.CommitData(targetFileLines);
+            var lineCount = Target.CommitData(targetFileLines);
 
             sw.Stop();
             var commitDurationMs = sw.ElapsedMilliseconds - extractDurationMs;
 
-            this.OnExtractComplete(this.fileLinesRead, this.linesExtracted, lineCount, extractDurationMs, commitDurationMs, sw.ElapsedMilliseconds);
+            OnExtractComplete(fileLinesRead, linesExtracted, lineCount, extractDurationMs, commitDurationMs,
+                sw.ElapsedMilliseconds);
         }
 
         public IEnumerable<TextFileRecordLine> FlattenRecordsIntoLines(IEnumerable<TextFileRecord> records)
         {
-            lock (this.enumeratorLock2)
+            lock (enumeratorLock2)
             {
-                if (this.ThrowMultipleEnumerationError)
+                if (ThrowMultipleEnumerationError)
                 {
-                    if (this.mutipleEnumeration2)
+                    if (mutipleEnumeration2)
                     {
                         throw new Exception("Multiple enumeration of data!");
                     }
@@ -138,7 +141,7 @@
                 {
                     if (record.FileLines.Any())
                     {
-                        var recordLines = this.ParseRecord(record);
+                        var recordLines = ParseRecord(record);
                         if (recordLines != null)
                         {
                             foreach (var line in recordLines)
@@ -152,7 +155,7 @@
                     }
                 }
 
-                this.mutipleEnumeration2 = true;
+                mutipleEnumeration2 = true;
             }
         }
     }
